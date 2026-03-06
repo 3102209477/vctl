@@ -26,6 +26,40 @@ You are hereby granted the following rights:
    - Fork and create derivative works under the same license terms
 
 ===============================================================================
+CONDITIONS
+===============================================================================
+
+All uses of this Software are subject to the following conditions:
+
+1. ATTRIBUTION REQUIREMENT (署名要求)
+   You MUST give appropriate credit to the original author in ALL cases:
+   
+   a) When using the Software:
+      - Display "Powered by vctl" or similar attribution in user-facing interfaces
+      - Include visible acknowledgment in documentation and about pages
+   
+   b) When distributing the Software (original or modified):
+      - Retain all copyright notices and this license file
+      - Include a prominent notice stating: "This project uses vctl (https://github.com/3102209477/vctl)"
+      - Credit the original author in your project's README or documentation
+   
+   c) In publications or presentations:
+      - Acknowledge the use of vctl in academic papers, blog posts, or talks
+      - Provide a link to the original repository: https://github.com/3102209477/vctl
+   
+   d) Suggested attribution format:
+      ```
+      This project uses vctl, a version control system created by vctl.
+      Source: https://github.com/3102209477/vctl
+      License: Non-commercial use only (see LICENSE for details)
+      ```
+
+2. SHARE-ALIKE FOR DERIVATIVE WORKS
+   - Modified versions must be released under the SAME license terms
+   - Clearly state what changes were made to the original Software
+   - Mark modified files with notices indicating they have been changed
+
+===============================================================================
 RESTRICTIONS
 ===============================================================================
 
@@ -36,11 +70,17 @@ The following uses are PROHIBITED without explicit commercial license:
    - Incorporating into proprietary software for sale
    - Using in any revenue-generating activity
    - Providing paid services based on this Software
+   - Using the Software in SaaS products or cloud services for profit
 
 2. REDISTRIBUTION LIMITATIONS
    - You may not sell copies of this Software
    - You may not charge for distribution or hosting
    - Derivative works must maintain the same license terms
+   - Cannot remove or obscure author attribution and copyright notices
+
+3. TRADEMARK RESTRICTIONS
+   - The name "vctl" and project logos cannot be used to endorse derived works
+   - Cannot imply endorsement by the original author without permission
 
 ===============================================================================
 COMMERCIAL LICENSING
@@ -52,10 +92,11 @@ Repository: https://github.com/3102209477/vctl
 Email: Contact via GitHub Issues or pull requests
 
 Commercial licenses are available for:
-- Integration into commercial products
+- Integration into commercial products (with proper attribution)
 - Enterprise support and maintenance
 - Custom development and features
 - Training and consulting services
+- White-label solutions (removing attribution requirements)
 
 ===============================================================================
 DISCLAIMER
