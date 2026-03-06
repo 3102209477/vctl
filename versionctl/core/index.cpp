@@ -194,13 +194,31 @@ Tree Index::buildTree() const {
     
     // 为每个目录创建条目
     for (const auto& [dir, dirEntries] : dirMap) {
-        TreeEntry treeEntry;
-        treeEntry.name = dir.empty() ? "" : dir.substr(dir.find_last_of('/') + 1);
-        
-        // 这里简化处理，实际应该递归构建树
-        // 对于本地使用场景，单层目录结构已足够
-        
-        tree.entries.push_back(treeEntry);
+        // 如果是根目录的文件，直接添加到树
+        if (dir.empty()) {
+            for (const auto* entry : dirEntries) {
+                TreeEntry treeEntry;
+                treeEntry.name = entry->path;
+                treeEntry.hash = entry->hash;
+                treeEntry.type = ObjectType::BLOB;
+                treeEntry.mode = "100644";
+                tree.entries.push_back(treeEntry);
+            }
+        } else {
+            // 对于子目录，简化处理：创建目录条目
+            TreeEntry dirEntry;
+            dirEntry.name = dir.substr(dir.find_last_of('/') + 1);
+            
+            // 为该目录下的所有文件创建条目（扁平化处理）
+            for (const auto* entry : dirEntries) {
+                TreeEntry fileEntry;
+                fileEntry.name = entry->path.substr(entry->path.find_last_of('/') + 1);
+                fileEntry.hash = entry->hash;
+                fileEntry.type = ObjectType::BLOB;
+                fileEntry.mode = "100644";
+                tree.entries.push_back(fileEntry);
+            }
+        }
     }
     
     return tree;

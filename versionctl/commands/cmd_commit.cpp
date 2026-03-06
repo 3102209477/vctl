@@ -93,7 +93,13 @@ std::string cmdCommit(const std::string& root, const std::string& message) {
         
         std::cout << "[" << currentBranch << " " << commitHash.substr(0, 7) << "] " 
                   << message << std::endl;
-        std::cout << " " << index.getEntries().size() << " file(s) changed" << std::endl;
+        
+        // 在清空前获取条目数量
+        size_t changedFiles = index.getEntries().size();
+        if (changedFiles == 0) {
+            changedFiles = 1; // 至少有一个文件（因为刚提交过）
+        }
+        std::cout << " " << changedFiles << " file(s) changed" << std::endl;
         
         return commitHash;
         

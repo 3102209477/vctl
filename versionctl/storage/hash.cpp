@@ -29,9 +29,14 @@ std::string SHA256::compute(const std::string& data) {
     HCRYPTPROV hProv = 0;
     HCRYPTHASH hHash = 0;
     
-    if (!CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_FULL, 
+    // 尝试使用 AES CSP 提供者（更可靠）
+    if (!CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_AES, 
                              CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
-        return "";
+        // 如果失败，回退到 RSA_FULL
+        if (!CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_FULL, 
+                                 CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
+            return "";
+        }
     }
     
     if (!CryptCreateHash(hProv, CALG_SHA_256, 0, 0, &hHash)) {
@@ -83,9 +88,14 @@ std::string SHA256::computeFile(const std::string& filepath) {
     HCRYPTPROV hProv = 0;
     HCRYPTHASH hHash = 0;
     
-    if (!CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_FULL, 
+    // 优先使用 AES CSP 提供者（更现代和可靠）
+    if (!CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_AES, 
                              CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
-        return "";
+        // 如果 AES 提供者不可用，则回退到 RSA_FULL
+        if (!CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_FULL, 
+                                 CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
+            return "";
+        }
     }
     
     if (!CryptCreateHash(hProv, CALG_SHA_256, 0, 0, &hHash)) {

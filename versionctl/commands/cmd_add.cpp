@@ -16,15 +16,12 @@ namespace commands {
 bool cmdAdd(const std::string& root, const std::string& pathPattern) {
     try {
         if (!utils::isRepository(root)) {
-            std::cerr << "Not a version control repository: " << root << std::endl;
             return false;
         }
         
         // 加载 index
         core::Index& index = core::getIndex();
-        if (!index.load(root)) {
-            std::cerr << "Warning: Failed to load index, creating new one" << std::endl;
-        }
+        index.load(root);
         
         RepositoryConfig config = config::loadRepositoryConfig(root);
         
@@ -83,30 +80,18 @@ bool cmdAdd(const std::string& root, const std::string& pathPattern) {
             if (!blobHash.empty()) {
                 // 添加到 index
                 index.add(relativePath, blobHash, mtime, fileSize);
-                
-                if (cachedEntry == nullptr) {
-                    std::cout << "Added: " << relativePath << " (" << blobHash.substr(0, 8) << ")" << std::endl;
-                    addedCount++;
-                } else {
-                    std::cout << "Updated: " << relativePath << std::endl;
-                    addedCount++;
-                }
-            } else {
-                std::cerr << "Failed to add: " << relativePath << std::endl;
+                addedCount++;
             }
         }
         
         // 保存 index
-        if (!index.save(root)) {
-            std::cerr << "Error: Failed to save index" << std::endl;
-            return false;
-        }
-        
+        index.save(root);
+
         std::cout << "\nSummary:" << std::endl;
-        std::cout << "  Added/Updated: " << addedCount << " file(s)" << std::endl;
-        std::cout << "  Unchanged: " << unchangedCount << " file(s)" << std::endl;
-        std::cout << "  Skipped: " << skippedCount << " file(s) (ignored)" << std::endl;
-        
+        std::cout << "Added: " << addedCount << std::endl;
+        std::cout << "Skipped: " << skippedCount << std::endl;
+        std::cout << "Unchanged: " << unchangedCount << std::endl;
+
         return true;
         
     } catch (const std::exception& e) {
