@@ -54,10 +54,45 @@ All uses of this Software are subject to the following conditions:
       License: Non-commercial use only (see LICENSE for details)
       ```
 
-2. SHARE-ALIKE FOR DERIVATIVE WORKS
+2. SOURCE CODE DISCLOSURE
+   - If you distribute modified versions, you must make the complete source code available
+   - Modified source code must be clearly marked with change notices and dates
+   - Maintain a changelog documenting all modifications from the original version
+
+3. SHARE-ALIKE FOR DERIVATIVE WORKS
    - Modified versions must be released under the SAME license terms
-   - Clearly state what changes were made to the original Software
-   - Mark modified files with notices indicating they have been changed
+   - Cannot impose additional restrictions beyond this license
+   - Must preserve all original copyright and patent notices
+
+4. NOTICE OF CHANGES
+   - Prominent notice must be given in documentation that the software has been modified
+   - Modified files must carry clear notices indicating changes were made
+   - Version numbers of derivative works should differ from the original to avoid confusion
+
+===============================================================================
+PATENT RIGHTS
+===============================================================================
+
+1. PATENT GRANT (Limited)
+   Subject to the terms and conditions of this License, each Contributor hereby 
+   grants to you a limited, non-exclusive, worldwide, royalty-free patent license 
+   to make, have made, use, offer to sell, sell, import, and otherwise transfer 
+   the Software, but ONLY for non-commercial purposes.
+
+2. PATENT RETALIATION
+   If you initiate patent litigation against any entity alleging that the 
+   Software or any contribution constitutes direct or contributory patent 
+   infringement, then any patent licenses granted to you under this License 
+   shall terminate as of the date such litigation is filed.
+
+3. NO COMMERCIAL PATENT LICENSE
+   This License does NOT grant any patent rights for commercial use. Separate 
+   patent licensing may be required for commercial applications. Contact the 
+   authors for commercial patent licensing arrangements.
+
+4. REPRESENTATION
+   Each contributor represents that they have the right to grant the patent 
+   rights stated above, either directly or through appropriate agreements.
 
 ===============================================================================
 RESTRICTIONS
@@ -71,16 +106,136 @@ The following uses are PROHIBITED without explicit commercial license:
    - Using in any revenue-generating activity
    - Providing paid services based on this Software
    - Using the Software in SaaS products or cloud services for profit
+   - Embedding in hardware devices for commercial sale
 
 2. REDISTRIBUTION LIMITATIONS
    - You may not sell copies of this Software
    - You may not charge for distribution or hosting
    - Derivative works must maintain the same license terms
    - Cannot remove or obscure author attribution and copyright notices
+   - Cannot sublicense the Software without explicit permission
 
 3. TRADEMARK RESTRICTIONS
-   - The name "vctl" and project logos cannot be used to endorse derived works
-   - Cannot imply endorsement by the original author without permission
+   - The name "vctl", project logos, and brand elements cannot be used to endorse derived works
+   - Cannot imply endorsement by the original author without written permission
+   - Cannot use trademarks in domain names, product names, or company names
+   - Trademark rights are NOT granted under this license
+
+4. MORAL RIGHTS
+   - Authors retain all moral rights in the Software
+   - Right of paternity (right to be identified as author) cannot be waived
+   - Right of integrity (object to derogatory treatment) is preserved
+   - Users must respect the moral rights of the original authors
+
+5. DATA PRIVACY COMPLIANCE
+   - If the Software processes personal data, users must comply with applicable privacy laws
+   - Authors are not responsible for data protection compliance by users
+   - Users must implement appropriate data protection measures
+
+6. EXPORT CONTROL
+   - Users must comply with all applicable export control laws and regulations
+   - Cannot export the Software to embargoed countries or prohibited end-users
+   - Responsible for obtaining any necessary export licenses
+
+===============================================================================
+WARRANTY DISCLAIMER & LIABILITY
+===============================================================================
+
+1. NO WARRANTIES
+   THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF ANY 
+   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT, 
+   SYSTEM INTEGRATION, FREEDOM FROM VIRUSES, OR ANY OTHER CONDITION.
+
+2. NO CONSEQUENTIAL DAMAGES
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+   DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE 
+   USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+3. LIMITATION OF LIABILITY
+   - Authors are not liable for any direct, indirect, incidental, special, 
+     consequential, or exemplary damages
+   - This includes but is not limited to loss of profits, data, business, or 
+     goodwill
+   - Users assume all risk and responsibility for their use of the Software
+   - Authors reserve the right to modify, update, or discontinue the Software 
+     at any time without notice
+
+4. INDEMNIFICATION
+   You agree to indemnify, defend and hold harmless the authors and contributors 
+   from any claims, liabilities, damages, losses, or expenses arising out of 
+   your use or misuse of the Software, or your violation of this License.
+
+5. ESSENTIAL BASIS
+   The limitations and exclusions of liability set out in this section form an 
+   essential basis of the bargain between the parties. Without these limitations, 
+   the Software would not be made available.
+
+===============================================================================
+TERMINATION
+===============================================================================
+
+1. AUTOMATIC TERMINATION
+   Your rights under this License will terminate automatically if you breach 
+   any of the conditions.
+
+2. EFFECT OF TERMINATION
+   Upon termination, you must:
+   - Immediately cease all use of the Software
+   - Destroy or remove all copies of the Software
+   - Cease distribution and public display
+   - Remove the Software from any products or services
+
+3. SURVIVAL
+   Sections on Disclaimer, Limitation of Liability, Indemnification, and 
+   Governing Law shall survive any termination of this License.
+
+4. REINSTATEMENT
+   Rights may be reinstated only with the express written permission of the 
+   copyright holder. Repeated violations result in permanent loss of usage rights.
+
+===============================================================================
+GENERAL PROVISIONS
+===============================================================================
+
+1. GOVERNING LAW
+   This License shall be governed by and construed in accordance with the laws 
+   of the jurisdiction where the primary author resides, without regard to its 
+   conflict of law provisions.
+
+2. DISPUTE RESOLUTION
+   Any disputes arising from this License shall first be attempted to be 
+   resolved through good-faith negotiation. If unsuccessful, disputes shall 
+   be resolved through binding arbitration in the author's jurisdiction.
+
+3. SEVERABILITY
+   If any provision of this License is held to be invalid or unenforceable, 
+   the remaining provisions shall remain in full force and effect. The invalid 
+   provision shall be modified to the minimum extent necessary to make it valid.
+
+4. ENTIRE AGREEMENT
+   This License constitutes the entire agreement between you and the authors 
+   regarding the use of the Software, superseding any prior agreements or 
+   understandings.
+
+5. NO WAIVER
+   Failure by the authors to enforce any right or provision of this License 
+   shall not constitute a waiver of those rights or provisions.
+
+6. ASSIGNMENT
+   You may not assign or transfer your rights under this License without the 
+   prior written consent of the authors. Any attempted assignment in violation 
+   of this section is void.
+
+7. THIRD-PARTY BENEFICIARIES
+   There are no third-party beneficiaries to this License except as expressly 
+   provided herein. Contributors are intended third-party beneficiaries of the 
+   patent grant provisions.
+
+8. COUNTERPARTS
+   This License may be executed in counterparts, each of which shall be deemed 
+   an original, but all of which together shall constitute one instrument.
 
 ===============================================================================
 COMMERCIAL LICENSING
@@ -97,18 +252,18 @@ Commercial licenses are available for:
 - Custom development and features
 - Training and consulting services
 - White-label solutions (removing attribution requirements)
+- Dual licensing options (commercial + open source)
+- Patent licensing for commercial applications
 
 ===============================================================================
-DISCLAIMER
+DEFINITIONS
 ===============================================================================
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+"Contributor" means any individual or entity who contributes code to the Software.
+"Derivative Work" means any work based on or incorporating the Software.
+"Distribute" means making the Software available to others, including through networks.
+"Commercial Use" means any use primarily intended for commercial advantage or monetary compensation.
+"You" refers to the individual or entity using the Software under this License.
 
 ===============================================================================
 END OF LICENSE AGREEMENT
