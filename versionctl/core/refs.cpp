@@ -2,6 +2,7 @@
 #include <vector>
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
@@ -164,6 +165,22 @@ std::vector<Commit> getBranchHistory(const std::string& root,
     
     std::string commitHash = utils::trim(utils::readFile(refPath));
     return getCommitHistory(root, commitHash, maxCount);
+}
+
+// 设置当前分支名称
+bool setCurrentBranch(const std::string& root, const std::string& branchName) {
+    std::string headPath = utils::getHeadPath(root);
+    
+    // 确保目录存在
+    utils::createDirectories(std::filesystem::path(headPath).parent_path().string());
+    
+    std::ofstream file(headPath);
+    if (!file) {
+        return false;
+    }
+    
+    file << "ref: refs/heads/" << branchName;
+    return true;
 }
 
 } // namespace core

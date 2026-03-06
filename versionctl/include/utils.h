@@ -47,7 +47,6 @@ bool matchesAnyPattern(const std::string& path, const std::vector<std::string>& 
 
 // Git 目录相关函数
 std::string getVersionDir(const std::string& root);
-std::string getObjectsDir(const std::string& root);
 std::string getRefsDir(const std::string& root);
 std::string getHeadsDir(const std::string& root);
 std::string getConfigPath(const std::string& root);
@@ -56,9 +55,13 @@ std::string getTargetIgnorePath(const std::string& root);
 std::string getHeadPath(const std::string& root);
 std::string getCommitLogPath(const std::string& root);
 
-// 对象存储相关函数
+// 对象路径相关
 std::string getObjectPath(const std::string& root, const std::string& hash);
+std::string getObjectsDir(const std::string& root);
 std::string getObjectTypeDir(const std::string& root, ObjectType type);
+
+// 文件变更检测
+bool hasFileChanged(const std::string& filePath, std::time_t cachedMtime, size_t cachedSize);
 
 // 验证函数
 bool isValidHash(const std::string& hash);

@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iomanip>
 #include <fstream>
+#include <sys/stat.h>
 #include "../include/types.h"
 #include "../include/constants.h"
 
@@ -309,12 +310,23 @@ bool isValidHash(const std::string& hash) {
     }
     
     for (char c : hash) {
-        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+        if (!std::isxdigit(static_cast<unsigned char>(c))) {
             return false;
         }
     }
     
     return true;
+}
+
+// 检查文件是否发生变化（基于 mtime 和 size）
+bool hasFileChanged(const std::string& filePath, std::time_t cachedMtime, size_t /*cachedSize*/) {
+    struct stat st;
+    if (stat(filePath.c_str(), &st) != 0) {
+        return true; // 文件不存在或无法访问
+    }
+    
+    // 快速检查：mtime 未变则内容未变
+    return st.st_mtime != cachedMtime;
 }
 
 bool isRepository(const std::string& path) {

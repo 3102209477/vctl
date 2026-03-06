@@ -5,25 +5,32 @@
 #include "../include/constants.h"
 #include "../include/utils.h"
 #include "../core/objects.h"
+#include "../core/index.h"
 #include "../config/config_manager.h"
 #include "../config/ignore_rules.h"
 
 namespace versionctl {
 namespace commands {
 
-// 添加文件到暂存区 (简化实现，直接添加到对象数据库)
-bool cmdAdd(const std::string& root, const std::string& pathPattern = ".") {
+// 添加文件到暂存区（使用 index）
+bool cmdAdd(const std::string& root, const std::string& pathPattern) {
     try {
         if (!utils::isRepository(root)) {
             std::cerr << "Not a version control repository: " << root << std::endl;
             return false;
         }
         
+        // 加载 index
+        core::Index& index = core::getIndex();
+        if (!index.load(root)) {
+            std::cerr << "Warning: Failed to load index, creating new one" << std::endl;
+        }
+        
         RepositoryConfig config = config::loadRepositoryConfig(root);
-        std::string currentPath = std::filesystem::current_path().string();
         
         int addedCount = 0;
         int skippedCount = 0;
+        int unchangedCount = 0;
         
         // 遍历文件
         for (const auto& entry : std::filesystem::recursive_directory_iterator(root)) {
@@ -55,20 +62,49 @@ bool cmdAdd(const std::string& root, const std::string& pathPattern = ".") {
                 continue;
             }
             
+            // 获取文件信息
+            std::time_t mtime = std::filesystem::last_write_time(entry.path()).time_since_epoch().count() / 10000000LL;
+            size_t fileSize = entry.file_size();
+            
+            // 检查 index 中是否已有该文件且未变化
+            const core::IndexEntry* cachedEntry = index.getEntry(relativePath);
+            if (cachedEntry != nullptr && 
+                !utils::hasFileChanged(fullPath, cachedEntry->mtime, cachedEntry->size)) {
+                // 文件未变化，直接使用缓存的 hash
+                index.add(relativePath, cachedEntry->hash, mtime, fileSize);
+                unchangedCount++;
+                continue;
+            }
+            
             // 读取文件内容并创建 Blob
             std::string content = utils::readFile(fullPath);
             std::string blobHash = core::createBlob(root, content);
             
             if (!blobHash.empty()) {
-                std::cout << "Added: " << relativePath << " (" << blobHash.substr(0, 8) << ")" << std::endl;
-                addedCount++;
+                // 添加到 index
+                index.add(relativePath, blobHash, mtime, fileSize);
+                
+                if (cachedEntry == nullptr) {
+                    std::cout << "Added: " << relativePath << " (" << blobHash.substr(0, 8) << ")" << std::endl;
+                    addedCount++;
+                } else {
+                    std::cout << "Updated: " << relativePath << std::endl;
+                    addedCount++;
+                }
             } else {
                 std::cerr << "Failed to add: " << relativePath << std::endl;
             }
         }
         
+        // 保存 index
+        if (!index.save(root)) {
+            std::cerr << "Error: Failed to save index" << std::endl;
+            return false;
+        }
+        
         std::cout << "\nSummary:" << std::endl;
-        std::cout << "  Added: " << addedCount << " file(s)" << std::endl;
+        std::cout << "  Added/Updated: " << addedCount << " file(s)" << std::endl;
+        std::cout << "  Unchanged: " << unchangedCount << " file(s)" << std::endl;
         std::cout << "  Skipped: " << skippedCount << " file(s) (ignored)" << std::endl;
         
         return true;

@@ -29,8 +29,17 @@ std::regex patternToRegex(const std::string& pattern) {
     // 处理目录分隔符
     std::string normalizedPattern = normalizePathSeparators(pattern);
     
+    // 处理特殊前缀
+    bool anchored = false;
+    size_t startIdx = 0;
+    
+    if (!normalizedPattern.empty() && normalizedPattern[0] == '/') {
+        anchored = true;  // 以/开头表示只匹配根目录
+        startIdx = 1;
+    }
+    
     // 转义正则特殊字符，但保留通配符
-    for (size_t i = 0; i < normalizedPattern.length(); i++) {
+    for (size_t i = startIdx; i < normalizedPattern.length(); i++) {
         char c = normalizedPattern[i];
         
         switch (c) {
@@ -38,8 +47,15 @@ std::regex patternToRegex(const std::string& pattern) {
                 // * 匹配除路径分隔符外的任意字符
                 if (i + 1 < normalizedPattern.length() && normalizedPattern[i + 1] == '*') {
                     // ** 匹配任意内容 (包括路径分隔符)
-                    regexStr += ".*";
-                    i++; // 跳过下一个*
+                    if (i + 2 < normalizedPattern.length() && normalizedPattern[i + 2] == '/') {
+                        // **/ 匹配零个或多个目录
+                        regexStr += "(?:.*/)?";
+                        i += 2; // 跳过**和/
+                    } else {
+                        // ** 匹配任意内容
+                        regexStr += ".*";
+                        i++; // 跳过下一个*
+                    }
                 } else {
                     regexStr += "[^/\\\\]*";
                 }
@@ -55,7 +71,17 @@ std::regex patternToRegex(const std::string& pattern) {
                 break;
                 
             case '[':
-                regexStr += "\\[";
+                // 字符集合 [...]
+                if (i + 1 < normalizedPattern.length()) {
+                    if (normalizedPattern[i + 1] == '!') {
+                        regexStr += "[^";
+                        i++;
+                    } else {
+                        regexStr += "[";
+                    }
+                } else {
+                    regexStr += "\\[";
+                }
                 break;
                 
             case ']':
@@ -71,11 +97,20 @@ std::regex patternToRegex(const std::string& pattern) {
                 break;
                 
             case '{':
-                regexStr += "\\{";
+                // 枚举 {a,b,c}
+                regexStr += "(";
                 break;
                 
             case '}':
-                regexStr += "\\}";
+                regexStr += ")";
+                break;
+                
+            case ',':
+                if (regexStr.back() != '(' && regexStr.find('{') != std::string::npos) {
+                    regexStr += "|";
+                } else {
+                    regexStr += ",";
+                }
                 break;
                 
             case '+':
@@ -94,6 +129,10 @@ std::regex patternToRegex(const std::string& pattern) {
                 regexStr += "\\|";
                 break;
                 
+            case '\\':
+                regexStr += "\\\\";
+                break;
+                
             default:
                 regexStr += c;
                 break;
@@ -101,7 +140,11 @@ std::regex patternToRegex(const std::string& pattern) {
     }
     
     // 添加行首和行尾锚点
-    regexStr = "^" + regexStr + "$";
+    if (anchored) {
+        regexStr = "^" + regexStr + "$";
+    } else {
+        regexStr = "^(?:" + regexStr + "|.*/" + regexStr + ")$";
+    }
     
     return std::regex(regexStr, std::regex::icase | std::regex::ECMAScript);
 }
