@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <chrono>
 #include <iomanip>
+#include <fstream>
 #include "../include/types.h"
 #include "../include/constants.h"
 
