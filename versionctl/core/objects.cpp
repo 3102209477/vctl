@@ -8,7 +8,7 @@
 #include "../include/utils.h"
 #include "../storage/hash.cpp"
 #include "../storage/binary_io.cpp"
-#include "../storage/cache.cpp"
+#include "../include/cache.h"
 
 namespace versionctl {
 namespace core {
