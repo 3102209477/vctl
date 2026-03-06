@@ -8,6 +8,7 @@
 #include "../core/refs.cpp"
 #include "../config/config_manager.cpp"
 #include "../config/ignore_rules.cpp"
+#include "../utils/platform.cpp"
 
 namespace versionctl {
 namespace commands {

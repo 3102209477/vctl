@@ -32,6 +32,10 @@ bool deleteDirectory(const std::string& path);
 int64_t getCurrentTimestamp();
 std::string formatTimestamp(int64_t timestamp);
 
+// 平台相关函数
+std::string getCurrentUserName();
+std::string getHostName();
+
 // 字符串处理函数
 std::string trim(const std::string& str);
 std::vector<std::string> split(const std::string& str, char delimiter);
