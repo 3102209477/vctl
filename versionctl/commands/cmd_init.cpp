@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <fstream>
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
@@ -43,6 +44,33 @@ bool cmdInit(const std::string& root) {
         // 创建目标保护规则文件
         std::string protectPath = utils::getTargetIgnorePath(root);
         config::saveTargetProtectRules(protectPath, config);
+        
+        // 创建 .gitignore 文件（避免与 Git 冲突）
+        std::string gitignorePath = utils::joinPath(root, ".gitignore");
+        if (!utils::fileExists(gitignorePath)) {
+            std::ofstream gitignoreFile(gitignorePath);
+            if (gitignoreFile) {
+                gitignoreFile << "# Version Control System Metadata\n";
+                gitignoreFile << "# Automatically created to prevent conflicts with Git\n";
+                gitignoreFile << "\n";
+                gitignoreFile << "# Exclude vctl metadata directory\n";
+                gitignoreFile << ".version/\n";
+                gitignoreFile << "\n";
+                gitignoreFile << "# Exclude temporary files\n";
+                gitignoreFile << "*.tmp\n";
+                gitignoreFile << "*.swp\n";
+                gitignoreFile << "*~\n";
+                gitignoreFile << "\n";
+                gitignoreFile << "# Exclude build artifacts\n";
+                gitignoreFile << "build/\n";
+                gitignoreFile << "dist/\n";
+                gitignoreFile << "*.o\n";
+                gitignoreFile << "*.obj\n";
+                gitignoreFile << "*.exe\n";
+                gitignoreFile.close();
+                std::cout << "  - Created .gitignore file" << std::endl;
+            }
+        }
         
         std::cout << "Initialized empty version control repository in " << versionDir << std::endl;
         std::cout << "  - Created directory structure" << std::endl;
