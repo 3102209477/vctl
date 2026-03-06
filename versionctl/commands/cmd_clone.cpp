@@ -15,10 +15,12 @@ namespace commands {
 // 递归复制目录（排除不需要的文件）
 bool copyDirectory(const std::string& source, const std::string& target) {
     try {
-        // 创建目标目录
-        if (!std::filesystem::create_directories(target)) {
-            std::cerr << "Failed to create directory: " << target << std::endl;
-            return false;
+        // 如果目标目录不存在则创建，存在则继续使用
+        if (!std::filesystem::exists(target)) {
+            if (!std::filesystem::create_directories(target)) {
+                std::cerr << "Failed to create directory: " << target << std::endl;
+                return false;
+            }
         }
         
         // 遍历源目录
@@ -34,17 +36,20 @@ bool copyDirectory(const std::string& source, const std::string& target) {
             std::string targetPath = utils::joinPath(target, relativePath);
             
             if (entry.is_regular_file()) {
-                // 确保父目录存在
+                // 确保父目录存在（如果不存在则创建）
                 std::filesystem::path fsPath(targetPath);
-                if (fsPath.has_parent_path()) {
+                if (fsPath.has_parent_path() && !std::filesystem::exists(fsPath.parent_path())) {
                     std::filesystem::create_directories(fsPath.parent_path());
                 }
                 
-                // 复制文件
+                // 复制/覆盖文件
                 std::filesystem::copy_file(entry.path(), targetPath, 
                                           std::filesystem::copy_options::overwrite_existing);
             } else if (entry.is_directory()) {
-                std::filesystem::create_directories(targetPath);
+                // 只创建不存在的目录
+                if (!std::filesystem::exists(targetPath)) {
+                    std::filesystem::create_directories(targetPath);
+                }
             }
         }
         
@@ -71,30 +76,33 @@ bool cmdClone(const std::string& source, const std::string& target) {
             return false;
         }
         
-        // 检查目标是否已存在
-        if (utils::fileExists(target)) {
-            std::cerr << "Target path already exists: " << target << std::endl;
-            return false;
-        }
+        // 检查目标是否存在
+        bool targetExists = utils::fileExists(target);
         
-        std::cout << "Cloning from '" << source << "' to '" << target << "'" << std::endl;
-        
-        // 创建目标目录
-        if (!std::filesystem::create_directories(target)) {
-            std::cerr << "Failed to create target directory" << std::endl;
-            return false;
+        if (targetExists) {
+            std::cout << "Syncing from '" << source << "' to '" << target << "'" << std::endl;
+            std::cout << "Target directory exists, will update tracked files only" << std::endl;
+        } else {
+            std::cout << "Cloning from '" << source << "' to '" << target << "'" << std::endl;
+            // 创建目标目录
+            if (!std::filesystem::create_directories(target)) {
+                std::cerr << "Failed to create target directory" << std::endl;
+                return false;
+            }
         }
         
         // 复制工作树文件（排除版本控制元数据）
         int fileCount = 0;
         int dirCount = 0;
+        int skipCount = 0;
         
         for (const auto& entry : std::filesystem::recursive_directory_iterator(source)) {
             std::string relativePath = utils::relativePath(entry.path().string(), source);
             
             // 跳过 .version 目录（版本控制元数据）
-            // 跳过 .git 目录（Git 元数据，避免与未来远程仓库冲突）
+            // 跳过 .git 目录（Git 元数据，保留目标目录的 Git 配置）
             // 跳过 .svn 目录（SVN 元数据）
+            // 跳过 .hg 目录（Mercurial 元数据）
             if (utils::startsWith(relativePath, VERSION_DIR + "/") || 
                 utils::startsWith(relativePath, VERSION_DIR + "\\") ||
                 utils::startsWith(relativePath, ".git/") ||
@@ -102,7 +110,8 @@ bool cmdClone(const std::string& source, const std::string& target) {
                 utils::startsWith(relativePath, ".svn/") ||
                 utils::startsWith(relativePath, ".svn\\") ||
                 utils::startsWith(relativePath, ".hg/") ||
-                utils::startsWith(relativePath, ".hg\\")) {  // Mercurial
+                utils::startsWith(relativePath, ".hg\\")) {
+                skipCount++;
                 continue;
             }
             
@@ -110,6 +119,7 @@ bool cmdClone(const std::string& source, const std::string& target) {
             if (utils::startsWith(relativePath, "$") ||
                 utils::endsWith(relativePath, ".tmp") ||
                 utils::endsWith(relativePath, ".swp")) {
+                skipCount++;
                 continue;
             }
             
@@ -130,8 +140,11 @@ bool cmdClone(const std::string& source, const std::string& target) {
                                           std::filesystem::copy_options::overwrite_existing);
                 fileCount++;
             } else if (entry.is_directory()) {
-                std::filesystem::create_directories(targetPath);
-                dirCount++;
+                // 只创建目录，不删除已有目录
+                if (!std::filesystem::exists(targetPath)) {
+                    std::filesystem::create_directories(targetPath);
+                    dirCount++;
+                }
             }
         }
         
@@ -140,14 +153,20 @@ bool cmdClone(const std::string& source, const std::string& target) {
         std::string targetVersionDir = utils::getVersionDir(target);
         
         if (utils::fileExists(sourceVersionDir)) {
-            // 如果目标已存在，先删除（避免 copyDirectory 失败）
+            // 如果目标已有 .version，则增量更新
+            // 如果是新仓库，则直接复制整个 .version 目录
             if (std::filesystem::exists(targetVersionDir)) {
-                std::filesystem::remove_all(targetVersionDir);
-            }
-            
-            if (!copyDirectory(sourceVersionDir, targetVersionDir)) {
-                std::cerr << "Failed to copy version history" << std::endl;
-                return false;
+                // 目标已有 .version，使用 copyDirectory 进行增量更新（不删除已有文件）
+                if (!copyDirectory(sourceVersionDir, targetVersionDir)) {
+                    std::cerr << "Failed to update version history" << std::endl;
+                    return false;
+                }
+            } else {
+                // 目标是新仓库，直接复制整个 .version 目录
+                if (!copyDirectory(sourceVersionDir, targetVersionDir)) {
+                    std::cerr << "Failed to copy version history" << std::endl;
+                    return false;
+                }
             }
         }
         
@@ -193,12 +212,20 @@ bool cmdClone(const std::string& source, const std::string& target) {
         // 更新配置（如果需要）
         config::loadRepositoryConfig(target);
         
-        std::cout << "Clone completed successfully!" << std::endl;
-        std::cout << "  - Copied " << fileCount << " file(s)" << std::endl;
-        std::cout << "  - Created " << dirCount << " directory/directories" << std::endl;
-        std::cout << "  - Preserved complete version history" << std::endl;
+        std::cout << "Operation completed successfully!" << std::endl;
+        if (targetExists) {
+            std::cout << "  - Updated " << fileCount << " file(s)" << std::endl;
+            std::cout << "  - Created " << dirCount << " new directorie(s)" << std::endl;
+            std::cout << "  - Skipped " << skipCount << " metadata/system files" << std::endl;
+            std::cout << "  - Preserved existing Git repository and other files" << std::endl;
+        } else {
+            std::cout << "  - Copied " << fileCount << " file(s)" << std::endl;
+            std::cout << "  - Created " << dirCount << " directorie(s)" << std::endl;
+            std::cout << "  - Skipped " << skipCount << " metadata/system files" << std::endl;
+            std::cout << "  - Preserved complete version history" << std::endl;
+        }
         
-        // 显示克隆后的状态
+        // 显示克隆/同步后的状态
         std::string currentBranch = core::getCurrentBranch(target);
         if (!currentBranch.empty()) {
             std::cout << "  - Current branch: " << currentBranch << std::endl;
