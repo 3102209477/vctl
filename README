@@ -1,0 +1,297 @@
+# Version Control System (版本控制系统)
+
+一个模仿 Git 的本地版本控制系统，使用 C++ 实现。
+
+## 项目结构
+
+```
+versionctl/
+├── include/              # 公共头文件
+│   ├── types.h          # 类型定义
+│   ├── constants.h      # 常量定义
+│   └── utils.h          # 工具函数声明
+├── core/                # 核心功能模块
+│   ├── objects.cpp      # Blob/Tree/Commit对象操作
+│   └── refs.cpp         # 引用管理 (分支、HEAD)
+├── commands/            # 命令实现
+│   ├── cmd_init.cpp     # init 命令
+│   ├── cmd_add.cpp      # add 命令
+│   ├── cmd_commit.cpp   # commit 命令
+│   ├── cmd_status.cpp   # status 命令
+│   ├── cmd_log.cpp      # log 命令
+│   └── cmd_branch.cpp   # branch/checkout命令
+├── storage/             # 存储与缓存
+│   ├── hash.cpp         # SHA-256哈希计算
+│   ├── binary_io.cpp    # 二进制读写
+│   └── cache.cpp        # 缓存管理
+├── config/              # 配置管理
+│   ├── config_manager.cpp  # 配置管理
+│   └── ignore_rules.cpp    # 忽略规则
+├── utils/               # 工具函数
+│   ├── path_utils.cpp   # 路径处理
+│   └── platform.cpp     # 平台相关函数
+├── main.cpp             # 程序入口
+└── compile.ps1          # 编译脚本
+```
+
+## 编译方法
+
+### Windows (MinGW g++)
+
+```powershell
+cd versionctl
+.\compile.ps1
+```
+
+或者直接使用命令行:
+
+```bash
+g++ -std=c++17 -Wall -O2 -Iinclude \
+  main.cpp \
+  utils/path_utils.cpp utils/platform.cpp \
+  storage/hash.cpp storage/binary_io.cpp storage/cache.cpp \
+  core/objects.cpp core/refs.cpp \
+  config/config_manager.cpp config/ignore_rules.cpp \
+  commands/cmd_init.cpp commands/cmd_add.cpp commands/cmd_commit.cpp \
+  commands/cmd_status.cpp commands/cmd_log.cpp commands/cmd_branch.cpp \
+  -lcrypt32 -o vctl.exe
+```
+
+### Linux/macOS
+
+```bash
+g++ -std=c++17 -Wall -O2 -Iinclude \
+  main.cpp \
+  utils/path_utils.cpp utils/platform.cpp \
+  storage/hash.cpp storage/binary_io.cpp storage/cache.cpp \
+  core/objects.cpp core/refs.cpp \
+  config/config_manager.cpp config/ignore_rules.cpp \
+  commands/cmd_init.cpp commands/cmd_add.cpp commands/cmd_commit.cpp \
+  commands/cmd_status.cpp commands/cmd_log.cpp commands/cmd_branch.cpp \
+  -lssl -lcrypto -o vctl
+```
+
+## 使用方法
+
+### 1. 初始化仓库
+
+```bash
+mkdir myproject
+cd myproject
+../versionctl/vctl init
+```
+
+输出:
+```
+Initialized empty version control repository in .version
+  - Created directory structure
+  - Initialized HEAD (master branch)
+  - Created configuration file
+  - Created default ignore rules
+```
+
+### 2. 配置用户信息
+
+```bash
+vctl config user.name "Your Name"
+vctl config user.email "your.email@example.com"
+```
+
+### 3. 添加文件并提交
+
+```bash
+echo "Hello World" > hello.txt
+vctl add .
+vctl commit -m "Initial commit"
+```
+
+### 4. 查看状态和历史
+
+```bash
+vctl status
+vctl log
+```
+
+### 5. 分支管理
+
+```bash
+# 创建新分支
+vctl branch -b feature-1
+
+# 切换分支
+vctl checkout feature-1
+
+# 查看分支列表
+vctl branch
+
+# 删除分支
+vctl branch -d feature-1
+```
+
+## 支持的命令
+
+| 命令 | 说明 |
+|------|------|
+| `vctl init` | 初始化新仓库 |
+| `vctl add <pattern>` | 添加文件到暂存区 |
+| `vctl commit -m "msg"` | 提交变更 |
+| `vctl status` | 显示工作状态 |
+| `vctl log [-n count]` | 查看提交历史 |
+| `vctl branch` | 列出分支 |
+| `vctl branch -b <name>` | 创建分支 |
+| `vctl branch -d <name>` | 删除分支 |
+| `vctl checkout <branch>` | 切换分支 |
+| `vctl config <key> <val>` | 设置配置 |
+| `vctl help` | 显示帮助 |
+
+## 核心特性
+
+### 1. 内容寻址存储 (CAS)
+- 使用 SHA-256 哈希算法
+- 所有对象由哈希值唯一标识
+- 自动去重，节省存储空间
+
+### 2. 三种对象类型
+- **Blob**: 存储文件内容
+- **Tree**: 存储目录结构
+- **Commit**: 存储提交记录
+
+### 3. 二进制格式存储
+- Blob 对象：4 字节标记 + 8 字节大小 + 原始内容
+- Tree 对象：4 字节标记 + 8 字节计数 + 定长条目
+- Commit对象：文本格式 (便于阅读和调试)
+
+### 4. 双忽略列表机制
+- **源忽略** (.version/ignore): 不纳入版本控制的文件
+- **目标保护** (.target_ignore): checkout/clone时不覆盖的文件
+
+### 5. 分支管理
+- 通过 `refs/heads/*` 引用管理分支
+- HEAD 指向当前分支或提交
+- 支持分离 HEAD 状态
+
+### 6. 智能缓存
+- LRU 缓存策略
+- 减少磁盘 I/O
+- 线程安全设计
+
+## 仓库结构
+
+初始化后的 `.version` 目录结构:
+
+```
+.version/
+├── HEAD           # 当前分支引用
+├── config         # 仓库配置
+├── ignore         # 源忽略规则
+├── objects/       # 对象数据库
+│   └── <hash>     # 对象文件
+└── refs/
+    └── heads/     # 分支引用
+        └── master
+```
+
+## 配置文件格式
+
+`.version/config` 使用 INI 格式:
+
+```ini
+[repository]
+name = my-project
+authorName = Your Name
+authorEmail = your.email@example.com
+
+[source-ignore]
+node_modules/
+build/
+*.log
+.git/
+
+[target-protect]
+*.config
+.env.local
+```
+
+## 依赖项
+
+### Windows
+- MinGW g++ (支持 C++17)
+- Windows CryptoAPI (系统自带)
+
+### Linux/macOS
+- g++ (支持 C++17)
+- OpenSSL development libraries
+
+## 设计规范
+
+本项目遵循以下设计规范:
+
+1. **模块化设计**: 按功能职责划分独立模块
+2. **二进制存储**: 高效、跨平台一致的对象存储格式
+3. **路径安全性**: 所有路径基于仓库根目录拼接
+4. **返回值明确性**: 函数返回明确的状态值
+5. **配置化管理**: 忽略规则从配置文件读取
+6. **性能优化**: 
+   - 提前剪枝策略跳过忽略目录
+   - LRU 缓存减少重复读取
+   - 大文件分块处理降低内存占用
+
+## 示例项目
+
+```bash
+# 创建测试项目
+mkdir test-repo
+cd test-repo
+
+# 初始化
+../versionctl/vctl init
+
+# 创建一些文件
+echo "Source code" > main.cpp
+echo "Documentation" > README.md
+mkdir src
+echo "Helper" > src/helper.cpp
+
+# 配置用户
+../versionctl/vctl config user.name "Test User"
+../versionctl/vctl config user.email "test@example.com"
+
+# 添加并提交
+../versionctl/vctl add .
+../versionctl/vctl commit -m "Initial commit"
+
+# 修改文件
+echo "More code" >> main.cpp
+../versionctl/vctl add .
+../versionctl/vctl commit -m "Add more code"
+
+# 查看历史
+../versionctl/vctl log -n 5
+
+# 创建分支
+../versionctl/vctl branch -b feature
+../versionctl/vctl checkout feature
+
+# 查看分支
+../versionctl/vctl branch
+```
+
+## 限制和已知问题
+
+1. 当前实现为简化版本，部分功能待完善:
+   - 工作区状态检测需要完整实现
+   - checkout 命令的工作区更新需要实现
+   - merge/rebase等高级功能尚未实现
+
+2. 性能优化空间:
+   - 可引入守护进程模式减少启动开销
+   - 可实现增量状态检测
+   - 可添加多线程并行处理
+
+## 开发者
+
+这是一个教学/学习项目，展示了版本控制系统的基本原理和实现。
+
+## 许可证
+
+MIT License
