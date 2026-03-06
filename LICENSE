@@ -1,16 +1,65 @@
-MIT License
+vctl License Agreement
 
-Copyright (c) 2026 vctl
+Copyright (c) 2026 vctl. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software and associated documentation files (the "Software") are provided 
+for educational, research, and personal use only.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+===============================================================================
+PERMISSION GRANTED
+===============================================================================
+
+You are hereby granted the following rights:
+
+1. PERSONAL USE
+   - Use the Software for personal projects and learning
+   - Modify the source code for personal purposes
+   - Distribute copies for non-commercial purposes
+
+2. EDUCATIONAL & RESEARCH USE
+   - Use in academic institutions for teaching and research
+   - Include in open-source educational projects
+   - Publish research papers using this Software
+
+3. OPEN-SOURCE CONTRIBUTIONS
+   - Contribute bug fixes and improvements to the project
+   - Fork and create derivative works under the same license terms
+
+===============================================================================
+RESTRICTIONS
+===============================================================================
+
+The following uses are PROHIBITED without explicit commercial license:
+
+1. COMMERCIAL USE
+   - Using this Software in commercial products or services
+   - Incorporating into proprietary software for sale
+   - Using in any revenue-generating activity
+   - Providing paid services based on this Software
+
+2. REDISTRIBUTION LIMITATIONS
+   - You may not sell copies of this Software
+   - You may not charge for distribution or hosting
+   - Derivative works must maintain the same license terms
+
+===============================================================================
+COMMERCIAL LICENSING
+===============================================================================
+
+For commercial use, licensing, or other arrangements, please contact:
+
+Email: [Please add contact email]
+Website: https://github.com/3102209477/vctl
+
+Commercial licenses are available for:
+- Integration into commercial products
+- Enterprise support and maintenance
+- Custom development and features
+- Training and consulting services
+
+===============================================================================
+DISCLAIMER
+===============================================================================
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,3 +68,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+===============================================================================
+END OF LICENSE AGREEMENT
+===============================================================================
