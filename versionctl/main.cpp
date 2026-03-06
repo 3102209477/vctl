@@ -11,6 +11,7 @@
 #include "commands/cmd_status.h"
 #include "commands/cmd_log.h"
 #include "commands/cmd_branch.h"
+#include "commands/cmd_clone.h"
 #include "config/config_manager.h"
 
 using namespace versionctl;
@@ -28,12 +29,14 @@ void printUsage() {
     std::cout << "  vctl branch -d <name>        Delete a branch\n";
     std::cout << "  vctl checkout <branch>       Switch branches\n";
     std::cout << "  vctl config <key> <value>    Set configuration\n";
+    std::cout << "  vctl clone <source> [target] Clone a repository\n";
     std::cout << "\nExamples:\n";
     std::cout << "  vctl init\n";
     std::cout << "  vctl add .\n";
     std::cout << "  vctl commit -m \"Initial commit\"\n";
     std::cout << "  vctl branch -b feature-1\n";
     std::cout << "  vctl checkout feature-1\n";
+    std::cout << "  vctl clone /path/to/repo my-clone\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -125,6 +128,30 @@ int main(int argc, char* argv[]) {
             }
             
             if (!commands::cmdCheckout(root, args)) {
+                return 1;
+            }
+        }
+        else if (command == "clone") {
+            if (argc < 3) {
+                std::cerr << "Usage: clone <source> [target]" << std::endl;
+                std::cerr << "  source: path to the source repository" << std::endl;
+                std::cerr << "  target: path for the cloned repository (optional, defaults to source name)" << std::endl;
+                return 1;
+            }
+            
+            std::string source = argv[2];
+            std::string target = (argc >= 4) ? argv[3] : "";
+            
+            // 如果未指定目标路径，使用源路径的名称
+            if (target.empty()) {
+                std::filesystem::path sourcePath(source);
+                target = sourcePath.filename().string();
+                if (target.empty()) {
+                    target = "clone";
+                }
+            }
+            
+            if (!commands::cmdClone(source, target)) {
                 return 1;
             }
         }

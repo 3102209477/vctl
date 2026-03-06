@@ -9,6 +9,7 @@
 #include "../storage/hash.h"
 #include "../storage/binary_io.h"
 #include "../storage/cache.h"
+#include "../storage/compression.h"
 
 namespace versionctl {
 namespace core {
@@ -23,9 +24,9 @@ std::string hashContent(const std::string& content) {
     return storage::SHA256::compute(content);
 }
 
-// 创建 Blob 对象
+// 创建 Blob 对象（Git 格式 + zlib 压缩）
 std::string createBlob(const std::string& root, const std::string& content) {
-    // 计算哈希值 (包含类型前缀，与 Git 兼容)
+    // Git 格式：<type> <size>\0<content>
     std::string header = "blob " + std::to_string(content.length()) + "\0";
     std::string hashData = header + content;
     std::string hash = storage::SHA256::compute(hashData);
@@ -36,22 +37,95 @@ std::string createBlob(const std::string& root, const std::string& content) {
         return hash;
     }
     
-    // 创建 Blob 对象
-    Blob blob(content, hash);
+    // 准备存储的数据（Git 格式）
+    std::string storeData = header + content;
+    
+    // 使用 zlib 压缩
+    std::string compressed = storage::Compression::compress(storeData);
+    if (compressed.empty()) {
+        // 压缩失败，使用未压缩
+        compressed = storeData;
+    }
     
     // 确保对象目录存在
     std::string objectDir = utils::getObjectsDir(root);
     utils::createDirectories(objectDir);
     
-    // 写入对象文件
-    if (!storage::writeBlob(objectPath, blob)) {
+    // 写入压缩的对象文件
+    std::ofstream file(objectPath, std::ios::binary);
+    if (!file) {
         return "";
     }
+    file.write(compressed.data(), compressed.size());
+    file.close();
     
     // 添加到缓存
+    Blob blob(content, hash);
     storage::getGlobalCache().putBlob(hash, blob);
     
     return hash;
+}
+
+// 读取 Blob 对象（Git 格式 + zlib 解压）
+Blob readBlob(const std::string& root, const std::string& hash) {
+    // 先尝试从缓存获取
+    Blob cached;
+    if (storage::getGlobalCache().getBlob(hash, cached)) {
+        return cached;
+    }
+    
+    std::string objectPath = utils::getObjectPath(root, hash);
+    
+    // 读取压缩的文件
+    std::ifstream file(objectPath, std::ios::binary);
+    if (!file) {
+        return Blob();
+    }
+    
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string compressed = buffer.str();
+    file.close();
+    
+    // 尝试解压（如果是压缩的）
+    std::string decompressed = storage::Compression::decompress(compressed);
+    if (decompressed.empty()) {
+        // 解压失败，可能是未压缩的 Git 格式
+        decompressed = compressed;
+    }
+    
+    // 解析 Git 格式：<type> <size>\0<content>
+    size_t nullPos = decompressed.find('\0');
+    if (nullPos == std::string::npos || nullPos < 5) {
+        return Blob();
+    }
+    
+    std::string header = decompressed.substr(0, nullPos);
+    if (header.find("blob ") != 0) {
+        return Blob();
+    }
+    
+    size_t spacePos = header.find(' ');
+    if (spacePos == std::string::npos) {
+        return Blob();
+    }
+    
+    try {
+        size_t size = std::stoull(header.substr(spacePos + 1));
+        std::string content = decompressed.substr(nullPos + 1);
+        
+        if (content.length() != size) {
+            return Blob();
+        }
+        
+        Blob blob(content, hash);
+        // 添加到缓存
+        storage::getGlobalCache().putBlob(hash, blob);
+        return blob;
+        
+    } catch (...) {
+        return Blob();
+    }
 }
 
 // 读取 Blob 对象
@@ -73,18 +147,30 @@ Blob readBlobObject(const std::string& root, const std::string& hash) {
     return blob;
 }
 
-// 创建 Tree 对象
+// 创建 Tree 对象（Git 格式 + zlib 压缩）
 std::string createTree(const std::string& root, Tree& tree) {
-    // 序列化 Tree 内容用于计算哈希
+    // Git Tree 格式：<mode> <name>\0<20-byte-hash>
     std::stringstream ss;
     for (const auto& entry : tree.entries) {
-        ss << entry.mode << " " 
-           << (entry.type == ObjectType::TREE ? "tree" : "blob") << " "
-           << entry.hash << " " << entry.name << "\n";
+        // 格式：100644 filename\0<hash 字节>
+        ss << entry.mode << " " << entry.name << "\0";
+        
+        // 将十六进制 hash 转换为二进制（20 字节）
+        std::string hashBinary;
+        for (size_t i = 0; i < entry.hash.length(); i += 2) {
+            std::string byteStr = entry.hash.substr(i, 2);
+            char byte = static_cast<char>(std::stoi(byteStr, nullptr, 16));
+            hashBinary.push_back(byte);
+        }
+        ss << hashBinary;
     }
     
     std::string content = ss.str();
-    std::string hash = storage::SHA256::compute(content);
+    
+    // Git 格式：<type> <size>\0<content>
+    std::string header = "tree " + std::to_string(content.length()) + "\0";
+    std::string hashData = header + content;
+    std::string hash = storage::SHA256::compute(hashData);
     
     // 检查对象是否已存在
     std::string objectPath = utils::getObjectPath(root, hash);
@@ -92,18 +178,29 @@ std::string createTree(const std::string& root, Tree& tree) {
         return hash;
     }
     
-    tree.hash = hash;
+    // 准备存储的数据
+    std::string storeData = header + content;
+    
+    // 使用 zlib 压缩
+    std::string compressed = storage::Compression::compress(storeData);
+    if (compressed.empty()) {
+        compressed = storeData;
+    }
     
     // 确保对象目录存在
     std::string objectDir = utils::getObjectsDir(root);
     utils::createDirectories(objectDir);
     
-    // 写入对象文件
-    if (!storage::writeTree(objectPath, tree)) {
+    // 写入压缩的对象文件
+    std::ofstream file(objectPath, std::ios::binary);
+    if (!file) {
         return "";
     }
+    file.write(compressed.data(), compressed.size());
+    file.close();
     
     // 添加到缓存
+    tree.hash = hash;
     storage::getGlobalCache().putTree(hash, tree);
     
     return hash;

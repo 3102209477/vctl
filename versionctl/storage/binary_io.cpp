@@ -43,29 +43,31 @@ uint64_t binaryToUint64(const char* data) {
     return result;
 }
 
-// 写入 Blob 对象 (二进制格式)
+// 写入 Blob 对象（Git 二进制格式）
 bool writeBlob(const std::string& path, const Blob& blob) {
-    std::ofstream file(path, std::ios::binary);
-    if (!file) {
+    try {
+        std::ofstream file(path, std::ios::binary);
+        if (!file) {
+            return false;
+        }
+        
+        // Git 格式：<type> <size>\0<content>
+        // 例如：blob 13\0Hello World
+        std::string header = "blob " + std::to_string(blob.content.length()) + "\0";
+        
+        // 写入头部和内容（未压缩，由上层决定压缩）
+        file.write(header.c_str(), header.length());
+        file.write(blob.content.c_str(), blob.content.length());
+        
+        file.close();
+        return true;
+        
+    } catch (...) {
         return false;
     }
-    
-    // 写入类型标记 (4 字节): "BLOB"
-    file.write(BLOB_MARKER, 4);
-    
-    // 写入内容大小 (8 字节)
-    uint64_t size = blob.content.length();
-    std::string sizeData = uint64ToBinary(size);
-    file.write(sizeData.c_str(), 8);
-    
-    // 写入原始内容
-    file.write(blob.content.c_str(), blob.content.length());
-    
-    file.close();
-    return true;
 }
 
-// 读取 Blob 对象 (二进制格式)
+// 读取 Blob 对象（Git 二进制格式）
 Blob readBlob(const std::string& path) {
     Blob blob;
     
@@ -74,51 +76,33 @@ Blob readBlob(const std::string& path) {
         return blob;
     }
     
-    // 读取类型标记 (4 字节)
-    char marker[4];
-    file.read(marker, 4);
+    // 读取头部直到\0
+    std::string header;
+    char c;
+    while (file.get(c) && c != '\0') {
+        header += c;
+    }
     
-    // 检查是否为旧版文本格式
-    file.seekg(0, std::ios::beg);
-    std::string firstLine;
-    std::getline(file, firstLine);
+    // 解析头部："blob <size>"
+    if (header.find("blob ") != 0) {
+        return blob; // 格式错误
+    }
     
-    if (firstLine.find("blob ") == 0 || firstLine.empty()) {
-        // 旧版文本格式，回退到文本解析
-        file.close();
-        file.open(path, std::ios::binary);
-        
-        std::string line;
-        std::getline(file, line); // "blob <size>"
-        size_t spacePos = line.find(' ');
-        if (spacePos != std::string::npos) {
-            blob.size = std::stoull(line.substr(spacePos + 1));
-        }
-        
-        std::getline(file, line); // 空行
-        
-        // 读取剩余内容
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        blob.content = buffer.str();
-        
+    size_t spacePos = header.find(' ');
+    if (spacePos == std::string::npos) {
         return blob;
     }
     
-    // 验证标记
-    if (memcmp(marker, BLOB_MARKER, 4) != 0) {
-        file.close();
+    try {
+        blob.size = std::stoull(header.substr(spacePos + 1));
+    } catch (...) {
         return blob;
     }
     
-    // 读取内容大小 (8 字节)
-    char sizeData[8];
-    file.read(sizeData, 8);
-    blob.size = binaryToUint64(sizeData);
-    
-    // 读取原始内容
-    blob.content.resize(blob.size);
-    file.read(&blob.content[0], blob.size);
+    // 读取剩余内容
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    blob.content = buffer.str();
     
     file.close();
     return blob;
