@@ -2,9 +2,11 @@
 #include <vector>
 #include <regex>
 #include <algorithm>
+#include <fstream>
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
+#include "config_manager.h"
 
 namespace versionctl {
 namespace config {

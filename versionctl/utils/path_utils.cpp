@@ -186,8 +186,8 @@ int64_t getCurrentTimestamp() {
 }
 
 std::string formatTimestamp(int64_t timestamp) {
-    auto time = std::chrono::system_clock::from_time_t(timestamp);
-    std::tm* tm = std::localtime(&timestamp);
+    std::time_t time = timestamp;
+    std::tm* tm = std::localtime(&time);
     
     std::stringstream ss;
     ss << std::put_time(tm, "%Y-%m-%d %H:%M:%S");
@@ -296,7 +296,7 @@ std::string getObjectPath(const std::string& root, const std::string& hash) {
     return joinPath(getObjectsDir(root), hash);
 }
 
-std::string getObjectTypeDir(const std::string& root, ObjectType type) {
+std::string getObjectTypeDir(const std::string& root, ObjectType /*type*/) {
     // 所有对象都存储在 objects 目录下，不使用子目录
     return getObjectsDir(root);
 }

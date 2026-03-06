@@ -3,13 +3,10 @@
 #include <cstring>
 #include <filesystem>
 #include "../include/types.h"
+#include "../include/constants.h"
 
 namespace versionctl {
 namespace storage {
-
-// 二进制标记常量
-constexpr const char* BLOB_MARKER = "BLOB";
-constexpr const char* TREE_MARKER = "TREE";
 
 // 将整数转换为二进制标记
 std::string intToMarker(int value) {

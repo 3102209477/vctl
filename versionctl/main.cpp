@@ -5,12 +5,13 @@
 #include "include/types.h"
 #include "include/constants.h"
 #include "include/utils.h"
-#include "commands/cmd_init.cpp"
-#include "commands/cmd_add.cpp"
-#include "commands/cmd_commit.cpp"
-#include "commands/cmd_status.cpp"
-#include "commands/cmd_log.cpp"
-#include "commands/cmd_branch.cpp"
+#include "commands/cmd_init.h"
+#include "commands/cmd_add.h"
+#include "commands/cmd_commit.h"
+#include "commands/cmd_status.h"
+#include "commands/cmd_log.h"
+#include "commands/cmd_branch.h"
+#include "config/config_manager.h"
 
 using namespace versionctl;
 

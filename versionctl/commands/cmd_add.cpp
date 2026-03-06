@@ -4,9 +4,9 @@
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
-#include "../core/objects.cpp"
-#include "../config/config_manager.cpp"
-#include "../config/ignore_rules.cpp"
+#include "../core/objects.h"
+#include "../config/config_manager.h"
+#include "../config/ignore_rules.h"
 
 namespace versionctl {
 namespace commands {
@@ -38,7 +38,7 @@ bool cmdAdd(const std::string& root, const std::string& pathPattern = ".") {
             
             // 检查是否匹配路径模式
             bool matches = (pathPattern == "." || 
-                           utils::matchPattern(relativePath, pathPattern));
+                           config::matchPattern(relativePath, pathPattern));
             
             if (!matches) {
                 continue;

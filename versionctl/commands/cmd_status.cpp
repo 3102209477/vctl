@@ -3,8 +3,8 @@
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
-#include "../core/objects.cpp"
-#include "../core/refs.cpp"
+#include "../core/objects.h"
+#include "../core/refs.h"
 
 namespace versionctl {
 namespace commands {

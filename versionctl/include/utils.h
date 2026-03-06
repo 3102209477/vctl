@@ -31,10 +31,7 @@ bool deleteDirectory(const std::string& path);
 // 时间处理函数
 int64_t getCurrentTimestamp();
 std::string formatTimestamp(int64_t timestamp);
-
-// 平台相关函数
 std::string getCurrentUserName();
-std::string getHostName();
 
 // 字符串处理函数
 std::string trim(const std::string& str);
@@ -66,6 +63,9 @@ std::string getObjectTypeDir(const std::string& root, ObjectType type);
 // 验证函数
 bool isValidHash(const std::string& hash);
 bool isRepository(const std::string& path);
+
+// 控制台工具函数
+void enableConsoleColors();
 
 } // namespace utils
 

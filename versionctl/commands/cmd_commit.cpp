@@ -1,14 +1,14 @@
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <filesystem>
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
-#include "../core/objects.cpp"
-#include "../core/refs.cpp"
-#include "../config/config_manager.cpp"
-#include "../config/ignore_rules.cpp"
-#include "../utils/platform.cpp"
+#include "../core/objects.h"
+#include "../core/refs.h"
+#include "../config/config_manager.h"
+#include "../config/ignore_rules.h"
 
 namespace versionctl {
 namespace commands {

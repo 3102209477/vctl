@@ -6,9 +6,9 @@
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
-#include "../storage/hash.cpp"
-#include "../storage/binary_io.cpp"
-#include "../include/cache.h"
+#include "../storage/hash.h"
+#include "../storage/binary_io.h"
+#include "../storage/cache.h"
 
 namespace versionctl {
 namespace core {
@@ -131,7 +131,7 @@ Tree readTreeObject(const std::string& root, const std::string& hash) {
 
 // 递归创建目录树
 std::string createTreeFromDirectory(const std::string& root, const std::string& dirPath, 
-                                    const std::string& relativePath = "") {
+                                    const std::string& /*relativePath*/) {
     Tree tree;
     
     std::filesystem::path fsDirPath(dirPath);

@@ -1,13 +1,20 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <iostream>
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
-#include "objects.cpp"
 
 namespace versionctl {
 namespace core {
+
+// 前向声明
+std::string getCurrentBranch(const std::string& root);
+std::string getHeadCommit(const std::string& root);
+bool updateBranchRef(const std::string& root, const std::string& branchName, const std::string& commitHash);
+bool updateHEAD(const std::string& root, const std::string& branchName);
+Commit readCommitObject(const std::string& root, const std::string& hash);
 
 // 获取所有本地分支
 std::vector<BranchInfo> getLocalBranches(const std::string& root) {

@@ -3,8 +3,8 @@
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
-#include "../config/config_manager.cpp"
-#include "../config/ignore_rules.cpp"
+#include "../config/config_manager.h"
+#include "../config/ignore_rules.h"
 
 namespace versionctl {
 namespace commands {

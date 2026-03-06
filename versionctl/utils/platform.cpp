@@ -1,6 +1,14 @@
 #include <string>
 #include "../include/types.h"
 
+// 平台特定的头文件
+#ifdef _WIN32
+    #include <windows.h>
+    #include <io.h>
+#else
+    #include <unistd.h>
+#endif
+
 namespace versionctl {
 namespace utils {
 
