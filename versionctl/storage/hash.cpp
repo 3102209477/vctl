@@ -8,6 +8,9 @@
 #ifdef _WIN32
     #include <windows.h>
     #include <wincrypt.h>
+    #ifndef SHA256_DIGEST_LENGTH
+        #define SHA256_DIGEST_LENGTH 32
+    #endif
 #else
     #include <openssl/sha.h>
 #endif
