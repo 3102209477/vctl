@@ -291,7 +291,3 @@ echo "More code" >> main.cpp
 ## 开发者
 
 这是一个教学/学习项目，展示了版本控制系统的基本原理和实现。
-
-## 许可证
-
-MIT License
