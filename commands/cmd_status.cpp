@@ -1,6 +1,8 @@
 #include <string>
 #include <iostream>
 #include <filesystem>
+#include <set>
+#include <functional>
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
@@ -48,6 +50,31 @@ void cmdStatus(const std::string& root) {
             std::cout << "Nothing to commit, working tree clean.\n\n";
         }
         
+        // 读取当前 HEAD 提交文件列表，用于判断已提交文件是否为清洁状态
+        std::set<std::string> committedFiles;
+        std::string headCommit = core::getHeadCommit(root);
+        if (!headCommit.empty()) {
+            std::function<void(const std::string&, const std::string&, const std::string&)> collectFiles;
+            collectFiles = [&](const std::string& repoRoot, const std::string& treeHash, const std::string& prefix) {
+                if (treeHash.empty()) {
+                    return;
+                }
+                Tree tree = core::readTree(repoRoot, treeHash);
+                for (const auto& entry : tree.entries) {
+                    std::string path = prefix.empty() ? entry.name : prefix + "/" + entry.name;
+                    if (entry.type == ObjectType::TREE) {
+                        collectFiles(repoRoot, entry.hash, path);
+                    } else {
+                        committedFiles.insert(path);
+                    }
+                }
+            };
+            Commit head = core::readCommitObject(root, headCommit);
+            if (!head.tree.empty()) {
+                collectFiles(root, head.tree, "");
+            }
+        }
+        
         // 检查工作目录变更
         int modifiedCount = 0;
         int untrackedCount = 0;
@@ -79,8 +106,8 @@ void cmdStatus(const std::string& root) {
                     std::cout << "        modified: " << relativePath << "\n";
                     modifiedCount++;
                 }
-            } else {
-                // 未跟踪的文件
+            } else if (committedFiles.find(relativePath) == committedFiles.end()) {
+                // 未跟踪的文件，但如果它已经是 HEAD 提交的一部分则视为已清洁
                 if (untrackedCount == 0) {
                     std::cout << "Untracked files:\n";
                 }

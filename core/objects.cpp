@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+#include <iostream>
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
@@ -151,14 +153,19 @@ Blob readBlobObject(const std::string& root, const std::string& hash) {
 
 // 创建 Tree 对象（Git 格式 + zlib 压缩）
 std::string createTree(const std::string& root, Tree& tree) {
-    // Git Tree 格式：<mode> <name>\0<20-byte-hash>
+    // Git Tree 格式：<mode> <name>\0<hash-bytes>
     std::stringstream ss;
     for (const auto& entry : tree.entries) {
-        // 格式：100644 filename\0<hash 字节>
-        ss << entry.mode << " " << entry.name << "\0";
-        
-        // 将十六进制 hash 转换为二进制（20 字节）
+        ss << entry.mode << " " << entry.name;
+        ss.write("\0", 1);
+
+        // 将十六进制 hash 转换为二进制（32 字节 SHA-256）
+        if (entry.hash.length() != HASH_LENGTH) {
+            return "";
+        }
+
         std::string hashBinary;
+        hashBinary.reserve(HASH_LENGTH / 2);
         for (size_t i = 0; i < entry.hash.length(); i += 2) {
             std::string byteStr = entry.hash.substr(i, 2);
             char byte = static_cast<char>(std::stoi(byteStr, nullptr, 16));
@@ -166,51 +173,44 @@ std::string createTree(const std::string& root, Tree& tree) {
         }
         ss << hashBinary;
     }
-    
+
     std::string content = ss.str();
-    
+
     // Git 格式：<type> <size>\0<content>
     std::string header = "tree " + std::to_string(content.length());
-    header.append(1, '\0');  // 添加 null 分隔符
+    header.append(1, '\0');
     std::string hashData = header + content;
     std::string hash = storage::SHA256::compute(hashData);
-    
-    // 检查对象是否已存在
+
     std::string objectPath = utils::getObjectPath(root, hash);
     if (utils::fileExists(objectPath)) {
         return hash;
     }
-    
-    // 准备存储的数据
+
     std::string storeData = header + content;
-    
-    // 使用 zlib 压缩
     std::string compressed = storage::Compression::compress(storeData);
     if (compressed.empty()) {
         compressed = storeData;
     }
-    
-    // 确保对象目录存在
+
     std::string objectDir = utils::getObjectsDir(root);
     utils::createDirectories(objectDir);
-    
-    // 写入压缩的对象文件
+
     std::ofstream file(objectPath, std::ios::binary);
     if (!file) {
         return "";
     }
     file.write(compressed.data(), compressed.size());
     file.close();
-    
-    // 添加到缓存
+
     tree.hash = hash;
     storage::getGlobalCache().putTree(hash, tree);
-    
+
     return hash;
 }
 
 // 读取 Tree 对象（Git 格式 + zlib 解压）
-Tree readTreeObject(const std::string& root, const std::string& hash) {
+Tree readTree(const std::string& root, const std::string& hash) {
     // 先从缓存中查找
     Tree cachedTree;
     if (storage::getGlobalCache().getTree(hash, cachedTree)) {
@@ -256,37 +256,38 @@ Tree readTreeObject(const std::string& root, const std::string& hash) {
     size_t totalSize = content.length();
     
     while (pos < totalSize) {
-        // 读取模式
         size_t spacePos = content.find(' ', pos);
-        if (spacePos == std::string::npos) break;
-        
+        if (spacePos == std::string::npos) {
+            break;
+        }
+
         std::string mode = content.substr(pos, spacePos - pos);
         pos = spacePos + 1;
-        
-        // 读取文件名（直到\0）
+
         size_t nullPos2 = content.find('\0', pos);
-        if (nullPos2 == std::string::npos) break;
-        
+        if (nullPos2 == std::string::npos) {
+            break;
+        }
+
         std::string name = content.substr(pos, nullPos2 - pos);
         pos = nullPos2 + 1;
-        
-        // 读取 20 字节哈希
-        if (pos + 20 > totalSize) break;
-        
-        std::string hashBinary = content.substr(pos, 20);
-        pos += 20;
-        
-        // 将二进制哈希转换为十六进制字符串
+
+        const size_t hashBytes = HASH_LENGTH / 2;
+        if (pos + hashBytes > totalSize) {
+            break;
+        }
+
+        std::string hashBinary = content.substr(pos, hashBytes);
+        pos += hashBytes;
+
         std::stringstream hashSS;
-        for (int i = 0; i < 20; i++) {
-            hashSS << std::hex << std::setw(2) << std::setfill('0') 
-                   << (static_cast<unsigned int>(static_cast<unsigned char>(hashBinary[i])));
+        hashSS << std::hex << std::setfill('0');
+        for (size_t i = 0; i < hashBytes; i++) {
+            hashSS << std::setw(2) << (static_cast<unsigned int>(static_cast<unsigned char>(hashBinary[i])));
         }
         std::string entryHash = hashSS.str();
-        
-        // 确定类型
+
         ObjectType type = (mode == TREE_MODE) ? ObjectType::TREE : ObjectType::BLOB;
-        
         TreeEntry entry(name, entryHash, type, mode);
         tree.addEntry(entry);
     }
@@ -346,15 +347,17 @@ std::string createTreeFromDirectory(const std::string& root, const std::string& 
 
 // 递归恢复工作区文件
 bool checkoutTree(const std::string& root, const Tree& tree, const std::string& destination) {
-    if (!utils::createDirectories(destination)) {
-        return false;
+    if (!utils::fileExists(destination)) {
+        if (!utils::createDirectories(destination)) {
+            return false;
+        }
     }
 
     for (const auto& entry : tree.entries) {
         std::string targetPath = utils::joinPath(destination, entry.name);
 
         if (entry.type == ObjectType::TREE) {
-            Tree subtree = readTreeObject(root, entry.hash);
+            Tree subtree = readTree(root, entry.hash);
             if (subtree.entries.empty()) {
                 return false;
             }
@@ -395,7 +398,7 @@ bool restoreWorkingTree(const std::string& root, const std::string& commitOrBran
         return false;
     }
 
-    Tree tree = readTreeObject(root, commit.tree);
+    Tree tree = readTree(root, commit.tree);
     if (tree.entries.empty()) {
         return false;
     }

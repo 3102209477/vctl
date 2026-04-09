@@ -77,6 +77,11 @@ bool cmdClone(const std::string& source, const std::string& target) {
         }
         
         // 检查目标是否存在
+        if (utils::isInsideDir(target, source) || utils::startsWith(target, source + "/") || utils::startsWith(target, source + "\\")) {
+            std::cerr << "Error: clone target must not be inside the source repository." << std::endl;
+            return false;
+        }
+
         bool targetExists = utils::fileExists(target);
         
         if (targetExists) {
