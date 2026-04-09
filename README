@@ -40,7 +40,7 @@ versionctl/
 
 ```powershell
 cd versionctl
-.\compile.ps1
+.\build_package.ps1
 ```
 
 或者直接使用命令行:
