@@ -1,0 +1,16 @@
+# Build artifacts
+*.exe
+*.dll
+*.obj
+*.o
+*.zip
+
+# Package artifacts
+vctl_project_*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/

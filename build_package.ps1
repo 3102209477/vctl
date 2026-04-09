@@ -36,7 +36,7 @@ foreach ($dir in $dirs) {
 }
 
 # 复制根目录文件
-Write-Host "[3/5] Copying root files..." -ForegroundColor Green
+Write-Host "[3/6] Copying root files..." -ForegroundColor Green
 $rootFiles = @("main.cpp", "*.md", "*.bat", "*.cpp")
 foreach ($pattern in $rootFiles) {
     $files = Get-ChildItem -Path $projectRoot -Filter $pattern -File
@@ -47,8 +47,16 @@ foreach ($pattern in $rootFiles) {
     }
 }
 
+# 复制文档目录
+Write-Host "[4/6] Copying docs directory..." -ForegroundColor Green
+$docsDir = Join-Path $projectRoot "docs"
+if (Test-Path $docsDir) {
+    Copy-Item -Path $docsDir -Destination $packageDir -Recurse -Force
+    Write-Host "  ✓ Copied: docs" -ForegroundColor Gray
+}
+
 # 复制可执行文件
-Write-Host "[4/5] Copying executable files..." -ForegroundColor Green
+Write-Host "[5/6] Copying executable files..." -ForegroundColor Green
 $binDir = Join-Path $packageDir "bin"
 New-Item -ItemType Directory -Path $binDir -Force | Out-Null
 
