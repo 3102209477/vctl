@@ -12,7 +12,7 @@
 
 所有对象（Blob、Tree、Commit）都使用 Git 标准格式存储：
 
-```
+```bash
 <object-type> <size>\0<object-content>
 ```
 
@@ -42,6 +42,7 @@
 ### 修改的文件
 
 1. **core/objects.cpp** - 所有对象创建和读取函数
+
    - createBlob() - Blob 对象（Git 格式 + zlib）
    - readBlob() - Blob 对象读取（zlib 解压）
    - createTree() - Tree 对象（Git 格式 + zlib）
@@ -75,13 +76,13 @@ std::string content = decompressed.substr(nullPos + 1);
 
 Git Tree 二进制格式：
 
-```
+```bash
 <mode> <name>\0<20-byte-hash><mode> <name>\0<20-byte-hash>...
 ```
 
 示例：
 
-```
+```bash
 100644 file.txt\0<binary-hash>100644 test.cpp\0<binary-hash>
 ```
 
@@ -102,7 +103,7 @@ for (const auto& entry : tree.entries) {
 
 标准 Git Commit 格式：
 
-```
+```bash
 tree <hash>
 parent <hash> (可选，多个)
 author <name> <email> <timestamp>
@@ -161,7 +162,7 @@ Header: [commit 177]
 Content length: 177 bytes
 Content preview: tree fd0f2eb...
                  author s3102 <unknown@example.com> 1741296574
-                 
+
                  Test commit
 ```
 
@@ -362,8 +363,8 @@ A: 可能是对象格式错误导致读取失败
 
 ---
 
-**实现完成日期**: 2026-03-06  
-**版本**: vctl_gitformat.exe (712 KB)  
-**压缩库**: zlib 1.x  
-**对象格式**: Git 兼容 (SHA-256)  
+**实现完成日期**: 2026-03-06
+**版本**: vctl_gitformat.exe (712 KB)
+**压缩库**: zlib 1.x
+**对象格式**: Git 兼容 (SHA-256)
 **测试状态**: ✅ 全部通过

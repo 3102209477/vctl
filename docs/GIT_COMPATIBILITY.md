@@ -9,17 +9,19 @@
 ## 🎯 主要改进
 
 ### 1. **排除 .git 目录**
+
 克隆时自动跳过 `.git` 目录，避免与未来配置的远程 Git 仓库冲突。
 
 ```cpp
 // 跳过 .git 目录（Git 元数据，避免与未来远程仓库冲突）
-if (utils::startsWith(relativePath, ".git/") || 
+if (utils::startsWith(relativePath, ".git/") ||
     utils::startsWith(relativePath, ".git\\")) {
     continue;
 }
 ```
 
 ### 2. **自动创建 .gitignore**
+
 初始化仓库时自动创建 `.gitignore` 文件，排除 `.version` 目录。
 
 ```gitignore
@@ -43,6 +45,7 @@ dist/
 ```
 
 ### 3. **添加 REMOTE_README 指南**
+
 克隆时自动生成 `REMOTE_README.txt` 文件，指导用户如何配置远程 Git 仓库。
 
 ---
@@ -52,6 +55,7 @@ dist/
 ### [commands/cmd_clone.cpp](file://d:\Desktop\test\versionctl\commands\cmd_clone.cpp)
 
 **修改内容**:
+
 1. ✅ 增加对 `.git`、`.svn`、`.hg` 等 VCS 目录的排除
 2. ✅ 保留重要的配置文件（如 `.gitignore`）
 3. ✅ 创建 `REMOTE_README.txt` 使用指南
@@ -60,6 +64,7 @@ dist/
 ### [commands/cmd_init.cpp](file://d:\Desktop\test\versionctl\commands\cmd_init.cpp)
 
 **修改内容**:
+
 1. ✅ 添加 `<fstream>` 头文件支持
 2. ✅ 自动创建 `.gitignore` 文件
 3. ✅ 预设排除 `.version` 和其他常见临时文件
@@ -73,9 +78,9 @@ dist/
 ```cpp
 for (const auto& entry : std::filesystem::recursive_directory_iterator(source)) {
     std::string relativePath = utils::relativePath(entry.path().string(), source);
-    
+
     // 跳过版本控制元数据目录
-    if (utils::startsWith(relativePath, VERSION_DIR + "/") || 
+    if (utils::startsWith(relativePath, VERSION_DIR + "/") ||
         utils::startsWith(relativePath, VERSION_DIR + "\\") ||
         utils::startsWith(relativePath, ".git/") ||
         utils::startsWith(relativePath, ".git\\") ||
@@ -85,16 +90,16 @@ for (const auto& entry : std::filesystem::recursive_directory_iterator(source)) 
         utils::startsWith(relativePath, ".hg\\")) {
         continue;
     }
-    
+
     // 跳过临时文件
     if (utils::startsWith(relativePath, "$") ||
         utils::endsWith(relativePath, ".tmp") ||
         utils::endsWith(relativePath, ".swp")) {
         continue;
     }
-    
+
     // 复制文件到目标目录
-    std::filesystem::copy_file(entry.path(), targetPath, 
+    std::filesystem::copy_file(entry.path(), targetPath,
                               std::filesystem::copy_options::overwrite_existing);
 }
 ```
@@ -190,6 +195,7 @@ Clone completed successfully!
 ```
 
 **克隆的文件**:
+
 - ✅ `.version/` - 完整的版本历史
 - ✅ `.gitignore` - Git 排除规则
 - ✅ `.target_ignore` - vctl 忽略规则
@@ -252,6 +258,7 @@ vctl clone source target
 ```
 
 **优势**:
+
 - ✅ 完全离线工作
 - ✅ 快速备份和恢复
 - ✅ 不依赖外部服务
@@ -273,6 +280,7 @@ git push
 ```
 
 **优势**:
+
 - ✅ `.version` 被 `.gitignore` 排除
 - ✅ 本地和远程独立管理
 - ✅ 双重备份保障
@@ -297,6 +305,7 @@ git push -u origin master
 ```
 
 **优势**:
+
 - ✅ 平滑迁移
 - ✅ 保留提交历史（通过工具）
 - ✅ 无冲突
@@ -310,7 +319,7 @@ git push -u origin master
 - [ ] **Git 互操作工具**
   - `vctl git-import` - 从 Git 导入历史
   - `vctl git-export` - 导出为 Git 格式
-  
+
 - [ ] **远程配置命令**
   - `vctl remote add <name> <url>`
   - `vctl push --to-git`
@@ -346,28 +355,34 @@ git push -u origin master
 ### ⚠️ 当前限制
 
 1. **不支持直接推送 Git**
+
    - 需要手动配置 Git 远程
    - 两个系统独立运行
 
 2. **历史不互通**
+
    - `.version` 历史 ≠ Git 历史
    - 需要转换工具迁移
 
 3. **双向同步复杂**
+
    - 同时修改可能导致冲突
    - 建议单向使用（本地或远程）
 
 ### ✅ 最佳实践
 
 1. **选择主要工作流**
+
    - 纯本地：只用 vctl
    - 需要远程：主要用 Git，vctl 做备份
 
 2. **定期备份**
+
    - 使用 `vctl clone` 创建备份
    - 或使用 Git 推送到远程
 
 3. **清晰命名**
+
    - 本地分支：`local-feature`
    - 远程分支：`origin/feature`
 
@@ -409,7 +424,7 @@ git push -u origin master
 
 ---
 
-**实现完成日期**: 2026-03-06  
-**版本**: vctl.exe (715 KB)  
-**测试状态**: ✅ 全部通过  
+**实现完成日期**: 2026-03-06
+**版本**: vctl.exe (715 KB)
+**测试状态**: ✅ 全部通过
 **Git 兼容性**: ✅ 避免冲突

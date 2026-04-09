@@ -10,7 +10,7 @@
 
 ```cpp
 // 使用更可靠的 AES CSP 提供者
-if (!CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_AES, 
+if (!CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_AES,
                          CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
     // 回退到 RSA_FULL
 }
@@ -114,7 +114,7 @@ std::list<std::string> lruList;
 
 **示例**:
 
-```
+```bash
 # 忽略所有 node_modules（包括子目录）
 **/node_modules/**
 
@@ -233,18 +233,18 @@ std::list<std::string> lruList;
 
 ### 最适合
 
-✅ 本地开发环境  
-✅ 个人项目管理  
-✅ 小型到中型项目（<10000 文件）  
-✅ 频繁提交的工作流  
-✅ 单用户场景  
+✅ 本地开发环境
+✅ 个人项目管理
+✅ 小型到中型项目（<10000 文件）
+✅ 频繁提交的工作流
+✅ 单用户场景
 
 ### 不太适合
 
-❌ 超大规模项目（>100000 文件）  
-❌ 分布式团队协作  
-❌ 需要复杂分支管理  
-❌ 需要远程仓库同步  
+❌ 超大规模项目（>100000 文件）
+❌ 分布式团队协作
+❌ 需要复杂分支管理
+❌ 需要远程仓库同步
 
 ---
 
@@ -257,26 +257,26 @@ std::list<std::string> lruList;
    ```bash
    vctl add file1.txt
    vctl commit -m "Add file1"
-   
+
    vctl add file2.txt
    vctl commit -m "Add file2"
-   ```
+```
 
 2. **利用 .versionignore**
 
-   ```
+```bash
    # 提前排除大型目录
    node_modules/
    build/
    *.log
-   ```
+```
 
 3. **定期清理（未来功能）**
 
    ```bash
    vctl gc      # 压缩对象数据库
    vctl prune   # 删除悬空对象
-   ```
+```
 
 ---
 

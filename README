@@ -4,7 +4,7 @@
 
 ## 项目结构
 
-```
+```bash
 commands/
 config/
 core/
@@ -65,7 +65,8 @@ cd myproject
 ```
 
 输出:
-```
+
+```bash
 Initialized empty version control repository in .version
   - Created directory structure
   - Initialized HEAD (master branch)
@@ -114,7 +115,9 @@ vctl branch -d feature-1
 ## 支持的命令
 
 | 命令 | 说明 |
-|------|------|
+
+| --- | --- |
+
 | `vctl init` | 初始化新仓库 |
 | `vctl add <pattern>` | 添加文件到暂存区 |
 | `vctl commit -m "msg"` | 提交变更 |
@@ -130,35 +133,42 @@ vctl branch -d feature-1
 ## 核心特性
 
 ### 1. 内容寻址存储 (CAS)
+
 - 使用 SHA-256 哈希算法
 - 所有对象由哈希值唯一标识
 - 自动去重，节省存储空间
 
 ### 2. 三种对象类型
+
 - **Blob**: 存储文件内容
 - **Tree**: 存储目录结构
 - **Commit**: 存储提交记录
 
 ### 3. 二进制格式存储
+
 - Blob 对象：4 字节标记 + 8 字节大小 + 原始内容
 - Tree 对象：4 字节标记 + 8 字节计数 + 定长条目
 - Commit对象：文本格式 (便于阅读和调试)
 
 ### 4. 双忽略列表机制
+
 - **源忽略** (.version/ignore): 不纳入版本控制的文件
 - **目标保护** (.target_ignore): checkout/clone时不覆盖的文件
 
 ### 5. 分支管理
+
 - 通过 `refs/heads/*` 引用管理分支
 - HEAD 指向当前分支或提交
 - 支持分离 HEAD 状态
 
 ### 6. 智能缓存
+
 - LRU 缓存策略
 - 减少磁盘 I/O
 - 线程安全设计
 
 ### 7. Clone/Sync 功能
+
 - 支持仓库克隆
 - 支持增量同步
 - 保留已存在仓库结构
@@ -167,7 +177,7 @@ vctl branch -d feature-1
 
 初始化后的 `.version` 目录结构:
 
-```
+```bash
 .version/
 ├── HEAD           # 当前分支引用
 ├── config         # 仓库配置
@@ -222,10 +232,12 @@ build/
 ## 依赖项
 
 ### Windows
+
 - MinGW g++ (支持 C++17)
 - Windows CryptoAPI (系统自带)
 
 ### Linux/macOS
+
 - g++ (支持 C++17)
 - OpenSSL development libraries
 
@@ -238,7 +250,8 @@ build/
 3. **路径安全性**: 所有路径基于仓库根目录拼接
 4. **返回值明确性**: 函数返回明确的状态值
 5. **配置化管理**: 忽略规则从配置文件读取
-6. **性能优化**: 
+6. **性能优化**:
+
    - 提前剪枝策略跳过忽略目录
    - LRU 缓存减少重复读取
    - 大文件分块处理降低内存占用
@@ -286,11 +299,13 @@ echo "More code" >> main.cpp
 ## 限制和已知问题
 
 1. 当前实现为简化版本，部分功能待完善:
+
    - 工作区状态检测需要完整实现
    - checkout 命令的工作区更新需要实现
    - merge/rebase等高级功能尚未实现
 
 2. 性能优化空间:
+
    - 可引入守护进程模式减少启动开销
    - 可实现增量状态检测
    - 可添加多线程并行处理

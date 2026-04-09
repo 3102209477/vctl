@@ -47,20 +47,24 @@ vctl clone /path/to/repo
 ### 克隆过程
 
 1. **验证源路径**
+
    - 检查路径是否存在
    - 验证是否为有效的版本控制仓库
 
 2. **复制工作树文件**
+
    - 递归复制所有文件
    - 排除 `.version`、`.git`、`.svn` 等版本控制目录
    - 保留目录结构
 
 3. **复制版本历史**
+
    - 完整复制 `.version` 目录
    - 包含所有提交、分支、标签
    - 保留配置文件
 
 4. **更新配置**
+
    - 加载目标仓库配置
    - 保持独立性（可独立工作）
 
@@ -117,7 +121,7 @@ vctl status     # 应显示工作状态
 
 **输出**:
 
-```
+```bash
 Cloning from 'test_source' to 'test_clone'
 Clone completed successfully!
   - Copied 1 file(s)
@@ -150,7 +154,7 @@ vctl log
 
 **输出**:
 
-```
+```bash
 commit <hash3>
 Author: ...
 Date:   ...
@@ -183,7 +187,7 @@ vctl status      # 应显示干净状态
 
 **输出**:
 
-```
+```bash
 [master abc123] Clone commit
  1 file(s) changed
 ```
