@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <set>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -8,6 +9,8 @@
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
+#include "../config/config_manager.h"
+#include "../config/ignore_rules.h"
 #include "../core/objects.h"
 #include "../storage/hash.h"
 #include "../storage/binary_io.h"
@@ -140,10 +143,7 @@ Blob readBlobObject(const std::string& root, const std::string& hash) {
         return cachedBlob;
     }
     
-    // 从磁盘读取
-    std::string objectPath = utils::getObjectPath(root, hash);
-    Blob blob = storage::readBlob(objectPath);
-    
+    Blob blob = readBlob(root, hash);
     if (!blob.content.empty()) {
         storage::getGlobalCache().putBlob(hash, blob);
     }
@@ -345,6 +345,87 @@ std::string createTreeFromDirectory(const std::string& root, const std::string& 
     return createTree(root, tree);
 }
 
+static void collectTreeFiles(const std::string& root, const Tree& tree,
+                              const std::string& prefix,
+                              std::set<std::string>& paths) {
+    for (const auto& entry : tree.entries) {
+        std::string path = prefix.empty() ? entry.name : prefix + "/" + entry.name;
+        if (entry.type == ObjectType::TREE) {
+            Tree subtree = readTree(root, entry.hash);
+            if (!subtree.entries.empty()) {
+                collectTreeFiles(root, subtree, path, paths);
+            }
+        } else {
+            paths.insert(path);
+        }
+    }
+}
+
+static std::set<std::string> collectTreeFileSet(const std::string& root,
+                                                const std::string& treeHash) {
+    std::set<std::string> paths;
+    if (treeHash.empty()) {
+        return paths;
+    }
+
+    Tree tree = readTree(root, treeHash);
+    if (!tree.entries.empty()) {
+        collectTreeFiles(root, tree, "", paths);
+    }
+    return paths;
+}
+
+static void removeEmptyDirectories(const std::filesystem::path& dir,
+                                   const std::string& root) {
+    if (dir.string() == root) {
+        return;
+    }
+
+    try {
+        if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir)) {
+            return;
+        }
+
+        auto it = std::filesystem::directory_iterator(dir);
+        if (it != std::filesystem::directory_iterator()) {
+            return;
+        }
+
+        std::filesystem::remove(dir);
+        removeEmptyDirectories(dir.parent_path(), root);
+    } catch (...) {
+        // 忽略删除失败，保持工作区稳定
+    }
+}
+
+static bool cleanupTrackedPaths(const std::string& root,
+                                const std::set<std::string>& oldPaths,
+                                const std::set<std::string>& newPaths,
+                                const versionctl::RepositoryConfig& config) {
+    for (const auto& path : oldPaths) {
+        if (newPaths.find(path) != newPaths.end()) {
+            continue;
+        }
+
+        if (config::shouldProtect(path, config)) {
+            continue;
+        }
+
+        std::string fullPath = utils::joinPath(root, path);
+        if (utils::fileExists(fullPath)) {
+            if (!utils::deleteFile(fullPath)) {
+                return false;
+            }
+
+            std::filesystem::path parentDir(fullPath);
+            if (parentDir.has_parent_path()) {
+                removeEmptyDirectories(parentDir.parent_path(), root);
+            }
+        }
+    }
+    return true;
+}
+
 // 递归恢复工作区文件
 bool checkoutTree(const std::string& root, const Tree& tree, const std::string& destination) {
     if (!utils::fileExists(destination)) {
@@ -378,7 +459,8 @@ bool checkoutTree(const std::string& root, const Tree& tree, const std::string& 
     return true;
 }
 
-bool restoreWorkingTree(const std::string& root, const std::string& commitOrBranch) {
+bool restoreWorkingTree(const std::string& root, const std::string& commitOrBranch,
+                        const std::string& oldCommitHash) {
     std::string commitHash;
     if (utils::isValidHash(commitOrBranch)) {
         commitHash = commitOrBranch;
@@ -396,6 +478,19 @@ bool restoreWorkingTree(const std::string& root, const std::string& commitOrBran
     Commit commit = readCommitObject(root, commitHash);
     if (commit.tree.empty()) {
         return false;
+    }
+
+    versionctl::RepositoryConfig config = config::loadRepositoryConfig(root);
+
+    if (!oldCommitHash.empty() && oldCommitHash != commitHash) {
+        Commit oldCommit = readCommitObject(root, oldCommitHash);
+        if (!oldCommit.tree.empty()) {
+            std::set<std::string> oldPaths = collectTreeFileSet(root, oldCommit.tree);
+            std::set<std::string> newPaths = collectTreeFileSet(root, commit.tree);
+            if (!cleanupTrackedPaths(root, oldPaths, newPaths, config)) {
+                return false;
+            }
+        }
     }
 
     Tree tree = readTree(root, commit.tree);

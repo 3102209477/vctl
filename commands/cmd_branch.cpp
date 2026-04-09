@@ -99,13 +99,13 @@ bool cmdCheckout(const std::string& root, const std::vector<std::string>& args) 
         // 检查是否是分支名
         std::string refPath = utils::getHeadsDir(root) + "/" + target;
         if (utils::fileExists(refPath)) {
-            // 切换到分支
+            std::string oldHead = core::getHeadCommit(root);
             if (core::checkoutBranch(root, target)) {
-                std::cout << "Switched to branch '" << target << "'" << std::endl;
-                if (!core::restoreWorkingTree(root, target)) {
+                if (!core::restoreWorkingTree(root, target, oldHead)) {
                     std::cerr << "Warning: branch switched but working tree restore failed." << std::endl;
                     return false;
                 }
+                std::cout << "Switched to branch '" << target << "'" << std::endl;
                 return true;
             }
             return false;
@@ -114,14 +114,14 @@ bool cmdCheckout(const std::string& root, const std::vector<std::string>& args) 
         // 检查是否是提交哈希
         if (utils::isValidHash(target)) {
             // 分离 HEAD 状态
+            std::string oldHead = core::getHeadCommit(root);
             if (core::updateHEAD(root, target)) {
-                std::cout << "Note: switching to '" << target.substr(0, 7) << "'." << std::endl;
-                std::cout << "You are in 'detached HEAD' state." << std::endl;
-                
-                if (!core::restoreWorkingTree(root, target)) {
+                if (!core::restoreWorkingTree(root, target, oldHead)) {
                     std::cerr << "Warning: detached HEAD restored, but working tree restore failed." << std::endl;
                     return false;
                 }
+                std::cout << "Note: switching to '" << target.substr(0, 7) << "'." << std::endl;
+                std::cout << "You are in 'detached HEAD' state." << std::endl;
                 return true;
             }
             return false;

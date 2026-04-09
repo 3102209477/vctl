@@ -26,7 +26,8 @@ std::string createTreeFromDirectory(const std::string& root, const std::string& 
                                     const std::string& /*relativePath*/);
 
 bool checkoutTree(const std::string& root, const Tree& tree, const std::string& destination);
-bool restoreWorkingTree(const std::string& root, const std::string& commitOrBranch);
+bool restoreWorkingTree(const std::string& root, const std::string& commitOrBranch,
+                        const std::string& oldCommitHash = "");
 
 } // namespace core
 } // namespace versionctl
