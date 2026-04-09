@@ -6,6 +6,7 @@
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
+#include "../core/objects.h"
 #include "../storage/hash.h"
 #include "../storage/binary_io.h"
 #include "../storage/cache.h"
@@ -341,6 +342,65 @@ std::string createTreeFromDirectory(const std::string& root, const std::string& 
     
     // 创建 Tree 对象
     return createTree(root, tree);
+}
+
+// 递归恢复工作区文件
+bool checkoutTree(const std::string& root, const Tree& tree, const std::string& destination) {
+    if (!utils::createDirectories(destination)) {
+        return false;
+    }
+
+    for (const auto& entry : tree.entries) {
+        std::string targetPath = utils::joinPath(destination, entry.name);
+
+        if (entry.type == ObjectType::TREE) {
+            Tree subtree = readTreeObject(root, entry.hash);
+            if (subtree.entries.empty()) {
+                return false;
+            }
+            if (!checkoutTree(root, subtree, targetPath)) {
+                return false;
+            }
+        } else {
+            Blob blob = readBlobObject(root, entry.hash);
+            if (blob.content.empty()) {
+                return false;
+            }
+            if (!utils::writeFile(targetPath, blob.content)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool restoreWorkingTree(const std::string& root, const std::string& commitOrBranch) {
+    std::string commitHash;
+    if (utils::isValidHash(commitOrBranch)) {
+        commitHash = commitOrBranch;
+    } else {
+        std::string refPath = utils::getHeadsDir(root) + "/" + commitOrBranch;
+        if (utils::fileExists(refPath)) {
+            commitHash = utils::trim(utils::readFile(refPath));
+        }
+    }
+
+    if (commitHash.empty()) {
+        return false;
+    }
+
+    Commit commit = readCommitObject(root, commitHash);
+    if (commit.tree.empty()) {
+        return false;
+    }
+
+    Tree tree = readTreeObject(root, commit.tree);
+    if (tree.entries.empty()) {
+        return false;
+    }
+
+    return checkoutTree(root, tree, root);
 }
 
 // 创建 Commit 对象（Git 格式 + zlib 压缩）

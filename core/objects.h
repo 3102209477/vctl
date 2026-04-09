@@ -25,6 +25,9 @@ std::string createBlobFromFile(const std::string& root, const std::string& fileP
 std::string createTreeFromDirectory(const std::string& root, const std::string& dirPath, 
                                     const std::string& /*relativePath*/);
 
+bool checkoutTree(const std::string& root, const Tree& tree, const std::string& destination);
+bool restoreWorkingTree(const std::string& root, const std::string& commitOrBranch);
+
 } // namespace core
 } // namespace versionctl
 

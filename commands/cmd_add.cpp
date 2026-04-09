@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <filesystem>
+#include <chrono>
 #include "../include/types.h"
 #include "../include/constants.h"
 #include "../include/utils.h"
@@ -60,7 +61,9 @@ bool cmdAdd(const std::string& root, const std::string& pathPattern) {
             }
             
             // 获取文件信息
-            std::time_t mtime = std::filesystem::last_write_time(entry.path()).time_since_epoch().count() / 10000000LL;
+            auto fileTime = std::filesystem::last_write_time(entry.path());
+            auto mtime = std::chrono::duration_cast<std::chrono::seconds>(
+                fileTime.time_since_epoch()).count();
             size_t fileSize = entry.file_size();
             
             // 检查 index 中是否已有该文件且未变化

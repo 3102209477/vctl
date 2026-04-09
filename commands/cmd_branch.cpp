@@ -102,9 +102,10 @@ bool cmdCheckout(const std::string& root, const std::vector<std::string>& args) 
             // 切换到分支
             if (core::checkoutBranch(root, target)) {
                 std::cout << "Switched to branch '" << target << "'" << std::endl;
-                
-                // TODO: 更新工作区文件
-                
+                if (!core::restoreWorkingTree(root, target)) {
+                    std::cerr << "Warning: branch switched but working tree restore failed." << std::endl;
+                    return false;
+                }
                 return true;
             }
             return false;
@@ -117,8 +118,10 @@ bool cmdCheckout(const std::string& root, const std::vector<std::string>& args) 
                 std::cout << "Note: switching to '" << target.substr(0, 7) << "'." << std::endl;
                 std::cout << "You are in 'detached HEAD' state." << std::endl;
                 
-                // TODO: 更新工作区文件
-                
+                if (!core::restoreWorkingTree(root, target)) {
+                    std::cerr << "Warning: detached HEAD restored, but working tree restore failed." << std::endl;
+                    return false;
+                }
                 return true;
             }
             return false;

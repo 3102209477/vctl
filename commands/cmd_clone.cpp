@@ -103,14 +103,10 @@ bool cmdClone(const std::string& source, const std::string& target) {
             // 跳过 .git 目录（Git 元数据，保留目标目录的 Git 配置）
             // 跳过 .svn 目录（SVN 元数据）
             // 跳过 .hg 目录（Mercurial 元数据）
-            if (utils::startsWith(relativePath, VERSION_DIR + "/") || 
-                utils::startsWith(relativePath, VERSION_DIR + "\\") ||
-                utils::startsWith(relativePath, ".git/") ||
-                utils::startsWith(relativePath, ".git\\") ||
-                utils::startsWith(relativePath, ".svn/") ||
-                utils::startsWith(relativePath, ".svn\\") ||
-                utils::startsWith(relativePath, ".hg/") ||
-                utils::startsWith(relativePath, ".hg\\")) {
+            if (utils::startsWith(relativePath, VERSION_DIR) ||
+                utils::startsWith(relativePath, ".git") ||
+                utils::startsWith(relativePath, ".svn") ||
+                utils::startsWith(relativePath, ".hg")) {
                 skipCount++;
                 continue;
             }
@@ -122,9 +118,6 @@ bool cmdClone(const std::string& source, const std::string& target) {
                 skipCount++;
                 continue;
             }
-            
-            // 保留重要的配置文件（如 .gitignore, .editorconfig 等）
-            bool isConfigFile = utils::startsWith(entry.path().filename().string(), ".");
             
             std::string targetPath = utils::joinPath(target, relativePath);
             

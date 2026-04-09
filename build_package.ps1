@@ -37,7 +37,7 @@ foreach ($dir in $dirs) {
 
 # 复制根目录文件
 Write-Host "[3/6] Copying root files..." -ForegroundColor Green
-$rootFiles = @("main.cpp", "*.md", "*.bat", "*.cpp")
+$rootFiles = @("LICENSE", "main.cpp", "*.md", "*.bat", "*.cpp")
 foreach ($pattern in $rootFiles) {
     $files = Get-ChildItem -Path $projectRoot -Filter $pattern -File
     foreach ($file in $files) {
